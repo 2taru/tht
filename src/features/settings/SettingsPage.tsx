@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import {
   useSettings,
   useUpdateSettings,
   type SettingsInput,
 } from "@/queries/settings";
+import { ImportDialog } from "./ImportDialog";
 import { useProfile, useUpdateProfile, type Profile } from "@/queries/profile";
 import type { UserSettings } from "@/types/domain";
 import { minutesToTimeValue, timeValueToMinutes } from "@/lib/time";
@@ -36,8 +39,10 @@ export function SettingsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const { workspace } = useActiveWorkspace();
   const { data: settings } = useSettings(userId);
   const { data: profile } = useProfile(userId);
+  const [importOpen, setImportOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -52,6 +57,26 @@ export function SettingsPage() {
           profile={profile}
         />
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("import.title")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">{t("import.description")}</p>
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="size-4" />
+            {t("import.run")}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        workspaceId={workspace?.id ?? null}
+        userId={userId}
+      />
     </div>
   );
 }
