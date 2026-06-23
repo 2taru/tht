@@ -1,0 +1,27 @@
+# nginx для статики tht (SPA). Покласти dist/ у root і ввімкнути SPA-fallback.
+# SSL — через certbot (Let's Encrypt). Бек = Supabase хмара (тут нічого не проксуємо).
+
+server {
+    listen 80;
+    server_name tht.example.com;
+    # certbot додасть 443/SSL і редірект з 80 автоматично
+
+    root /var/www/tht;          # сюди залити вміст dist/
+    index index.html;
+
+    # SPA-fallback: будь-який маршрут → index.html (react-router)
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Кеш для хешованих ассетів (Vite додає хеш у назву файлу)
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+}

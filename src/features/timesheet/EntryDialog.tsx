@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { QueryKey } from "@tanstack/react-query";
 import type { Project } from "@/types/domain";
+import type { TaskWithLabels } from "@/queries/tasks";
 import {
   OVERLAP_VIOLATION,
   useCreateEntry,
@@ -46,6 +47,7 @@ interface EntryDialogProps {
   onOpenChange: (open: boolean) => void;
   draft: EntryDraft | null;
   projects: Project[];
+  tasks: TaskWithLabels[];
   workspaceId: string | null;
   userId: string | null;
   queryKey: QueryKey;
@@ -76,15 +78,19 @@ export function EntryDialog({
 interface EntryFormProps {
   draft: EntryDraft;
   projects: Project[];
+  tasks: TaskWithLabels[];
   workspaceId: string | null;
   userId: string | null;
   queryKey: QueryKey;
   onClose: () => void;
 }
 
+const NO_TASK = "none";
+
 function EntryForm({
   draft,
   projects,
+  tasks,
   workspaceId,
   userId,
   queryKey,
@@ -98,9 +104,15 @@ function EntryForm({
 
   const isEdit = !!draft.id;
   const [projectId, setProjectId] = useState(draft.projectId ?? "");
+  const [taskId, setTaskId] = useState(draft.taskId ?? NO_TASK);
   const [description, setDescription] = useState(draft.description ?? "");
   const [start, setStart] = useState(minutesToTimeValue(draft.startMinute));
   const [end, setEnd] = useState(minutesToTimeValue(draft.endMinute));
+
+  // Задачі обраного проєкту (+ поточна, навіть якщо проєкт інший).
+  const projectTasks = tasks.filter(
+    (tk) => tk.projectId === projectId || tk.id === draft.taskId,
+  );
 
   const startMinute = timeValueToMinutes(start);
   const endMinute = timeValueToMinutes(end);
@@ -116,7 +128,7 @@ function EntryForm({
     if (!canSave) return;
     const input: EntryInput = {
       projectId,
-      taskId: draft.taskId ?? null,
+      taskId: taskId === NO_TASK ? null : taskId,
       entryDate: draft.entryDate,
       startMinute,
       endMinute,
@@ -172,6 +184,27 @@ function EntryForm({
                     />
                     {p.name}
                   </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t("timesheet.task")}</Label>
+          <Select
+            value={projectTasks.some((tk) => tk.id === taskId) ? taskId : NO_TASK}
+            onValueChange={setTaskId}
+            disabled={!projectId}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("timesheet.noTask")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_TASK}>{t("timesheet.noTask")}</SelectItem>
+              {projectTasks.map((tk) => (
+                <SelectItem key={tk.id} value={tk.id}>
+                  {tk.title}
                 </SelectItem>
               ))}
             </SelectContent>

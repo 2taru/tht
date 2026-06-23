@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { UserSettings } from "@/types/domain";
 
@@ -24,10 +24,14 @@ function toDomain(row: SettingsRow): UserSettings {
   };
 }
 
+export function settingsKey(userId: string | null) {
+  return ["settings", userId] as const;
+}
+
 /** Налаштування поточного користувача (рядок створює тригер бутстрапу). */
 export function useSettings(userId: string | null) {
   return useQuery({
-    queryKey: ["settings", userId],
+    queryKey: settingsKey(userId),
     enabled: !!userId,
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<UserSettings> => {
@@ -40,6 +44,34 @@ export function useSettings(userId: string | null) {
         .single();
       if (error) throw error;
       return toDomain(data as SettingsRow);
+    },
+  });
+}
+
+export interface SettingsInput {
+  dayStartMinute: number;
+  dayEndMinute: number;
+  gridStepMinutes: number;
+  weekStart: number;
+}
+
+export function useUpdateSettings(userId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: SettingsInput) => {
+      const { error } = await supabase
+        .from("user_settings")
+        .update({
+          day_start_minute: input.dayStartMinute,
+          day_end_minute: input.dayEndMinute,
+          grid_step_minutes: input.gridStepMinutes,
+          week_start: input.weekStart,
+        })
+        .eq("user_id", userId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: settingsKey(userId) });
     },
   });
 }

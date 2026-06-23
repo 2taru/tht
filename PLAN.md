@@ -742,11 +742,17 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 - [x] Таблиця підсумків проєкт × години + загальна сума
 - [x] Експорт CSV (`lib/csv.ts`, BOM для Excel): date, project, task, description, hours
 
-### Phase 5 — Поліш і деплой
-- [ ] Налаштування (межі дня, крок, тиждень, тема, мова, профіль)
-- [ ] Loading/empty/error стани; тости; підтвердження
-- [ ] Build + деплой статики на VPS (nginx, SPA-fallback, домен, SSL)
-- [ ] Прод-Supabase: міграції, Google OAuth redirect-URL
+### Phase 5 — Поліш і деплой ✅ (завершено 2026-06-23)
+- [x] Налаштування (межі дня, крок, перший день тижня, тема, профіль) —
+      `features/settings`, `queries/settings.ts` (update), `queries/profile.ts`
+- [x] Loading (skeleton) / empty / error стани; тости (`sonner`); підтвердження видалення
+- [x] Lazy-роутинг (recharts/dnd-kit поза стартовим бандлом: 1360kB → 468kB)
+- [x] Хвіст Phase 2: drag-resize блоків (ручки країв) + task-picker в EntryDialog
+- [x] Деплой-артефакти: `deploy/nginx.conf.sample`, `deploy/README.md`,
+      `.env.production.example` (фактичний деплой на VPS — за наявності доступу)
+
+> Лишилось зробити вручну при наявності доступу: прод-Supabase (link + db push),
+> Google OAuth redirect-URL, заливка `dist/` на VPS + SSL — кроки в `deploy/README.md`.
 
 ### Пост-MVP (беклог)
 - [ ] **Команди:** UI workspace, запрошення, ролі, assignee, RLS під команди, realtime

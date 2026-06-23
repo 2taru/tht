@@ -43,6 +43,8 @@
     "editEntry": "Редагувати запис",
     "project": "Проєкт",
     "selectProject": "Оберіть проєкт",
+    "task": "Задача",
+    "noTask": "Без задачі",
     "description": "Опис",
     "start": "Початок",
     "end": "Кінець",
@@ -125,10 +127,23 @@
   },
   "settings": {
     "title": "Налаштування",
+    "profile": "Профіль",
+    "displayName": "Імʼя",
+    "workday": "Робочий день",
+    "dayStart": "Початок дня",
+    "dayEnd": "Кінець дня",
+    "boundsError": "Початок має бути раніше за кінець",
+    "gridStep": "Крок сітки",
+    "minutes": "хв",
+    "weekStart": "Перший день тижня",
+    "monday": "Понеділок",
+    "sunday": "Неділя",
+    "appearance": "Вигляд",
     "theme": "Тема",
     "light": "Світла",
     "dark": "Темна",
-    "system": "Системна"
+    "system": "Системна",
+    "saved": "Збережено"
   },
   "errors": {
     "notFound": "Сторінку не знайдено",

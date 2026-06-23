@@ -9,6 +9,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useSettings } from "@/queries/settings";
 import { useProjects } from "@/queries/projects";
+import { useTasks } from "@/queries/tasks";
 import { entriesKey, useEntriesRange } from "@/queries/timeEntries";
 import {
   addDaysISO,
@@ -64,6 +65,7 @@ export function TimesheetPage() {
     toISO,
   );
   const { data: projects } = useProjects(workspaceId);
+  const { data: tasks } = useTasks(workspaceId);
 
   const projectsById = useMemo(() => {
     const map = new Map<string, Project>();
@@ -238,6 +240,9 @@ export function TimesheetPage() {
                       dayEndMinute: gridEnd,
                       gridStepMinutes: cfg.gridStepMinutes,
                     }}
+                    workspaceId={workspaceId}
+                    userId={userId}
+                    queryKey={queryKey}
                     onCreate={openCreate}
                     onEdit={openEdit}
                   />
@@ -256,6 +261,7 @@ export function TimesheetPage() {
         onOpenChange={setDialogOpen}
         draft={draft}
         projects={projects ?? []}
+        tasks={tasks ?? []}
         workspaceId={workspaceId}
         userId={userId}
         queryKey={queryKey}
