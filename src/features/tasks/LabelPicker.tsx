@@ -87,7 +87,7 @@ export function LabelPicker({
                 key={l.id}
                 type="button"
                 onClick={() => toggle(l.id)}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:bg-accent"
               >
                 <span
                   className="size-3 rounded-full"

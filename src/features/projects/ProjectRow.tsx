@@ -77,7 +77,13 @@ export function ProjectRow({
         className="size-4 shrink-0 rounded-full"
         style={{ backgroundColor: project.color }}
       />
-      <span className="min-w-0 flex-1 truncate font-medium">{project.name}</span>
+      <button
+        type="button"
+        onClick={() => onEdit(project)}
+        className="min-w-0 flex-1 cursor-pointer truncate rounded text-left font-medium outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {project.name}
+      </button>
       {project.hourlyRate != null && (
         <span className="shrink-0 text-sm text-muted-foreground">
           {formatMoney(project.hourlyRate, currency)}/{t("common.hourShort")}

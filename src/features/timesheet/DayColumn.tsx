@@ -81,6 +81,7 @@ export function DayColumn({
 
   function startResize(entry: TimeEntry, edge: ResizeEdge, e: React.PointerEvent) {
     ref.current?.setPointerCapture(e.pointerId);
+    document.body.style.setProperty("cursor", "ns-resize");
     setResize({
       id: entry.id,
       edge,
@@ -111,6 +112,7 @@ export function DayColumn({
 
   async function commitResize(r: ResizeState) {
     setResize(null);
+    document.body.style.removeProperty("cursor");
     const original = entries.find((e) => e.id === r.id);
     if (!original) return;
     if (r.startMinute === original.startMinute && r.endMinute === original.endMinute) {
@@ -159,7 +161,7 @@ export function DayColumn({
   return (
     <div
       ref={ref}
-      className="relative w-full touch-none select-none"
+      className="relative w-full cursor-crosshair touch-none select-none"
       style={{ height }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

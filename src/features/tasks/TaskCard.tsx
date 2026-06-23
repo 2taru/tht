@@ -33,7 +33,9 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
       initial={{ opacity: 0 }}
       animate={{ opacity: isDragging ? 0.4 : 1 }}
       transition={{ duration: 0.18 }}
-      className={cn("group rounded-lg border bg-card p-3 shadow-sm")}
+      className={cn(
+        "group rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
+      )}
     >
       <div className="flex items-start gap-2">
         <button
@@ -48,7 +50,7 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
         <button
           type="button"
           onClick={() => onClick(task)}
-          className="min-w-0 flex-1 space-y-2 text-left"
+          className="min-w-0 flex-1 cursor-pointer space-y-2 rounded text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <p className="text-sm font-medium leading-snug">{task.title}</p>
 

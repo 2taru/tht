@@ -48,7 +48,7 @@ export function EntryBlock({
         type="button"
         onClick={() => onClick(entry)}
         onPointerDown={(e) => e.stopPropagation()}
-        className="absolute inset-0 z-10 px-2 py-1 text-left hover:brightness-110"
+        className="absolute inset-0 z-10 cursor-pointer px-2 py-1 text-left outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
       >
         <div className="flex items-center justify-between gap-1 font-medium">
           <span className="truncate">{project?.name ?? "—"}</span>

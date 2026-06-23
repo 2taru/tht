@@ -60,10 +60,12 @@ export function TaskBoard({
 
   function handleDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
+    document.body.style.setProperty("cursor", "grabbing");
   }
 
   function handleDragEnd(e: DragEndEvent) {
     setActiveId(null);
+    document.body.style.removeProperty("cursor");
     const { active, over } = e;
     if (!over) return;
     const dragged = tasks.find((tk) => tk.id === active.id);
@@ -103,6 +105,10 @@ export function TaskBoard({
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => {
+        setActiveId(null);
+        document.body.style.removeProperty("cursor");
+      }}
     >
       <div className="grid min-h-0 flex-1 auto-cols-[minmax(260px,1fr)] grid-flow-col gap-3 overflow-x-auto">
         {STATUSES.map((status) => (

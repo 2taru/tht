@@ -88,6 +88,7 @@ export function ImportDialog({
           <Input
             type="file"
             accept=".csv,.xlsx,.xls"
+            className="cursor-pointer file:cursor-pointer"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) void handleFile(file);

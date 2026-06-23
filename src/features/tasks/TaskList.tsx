@@ -115,7 +115,7 @@ export function TaskList({
                 key={tk.id}
                 type="button"
                 onClick={() => onRowClick(tk)}
-                className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-accent/50"
+                className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50"
               >
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">
                   {tk.title}
