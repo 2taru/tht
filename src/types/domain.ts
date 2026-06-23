@@ -21,6 +21,7 @@ export interface UserSettings {
   weekStart: number;
   theme: string;
   locale: string;
+  currency: string;
 }
 
 export interface Project {
@@ -29,6 +30,7 @@ export interface Project {
   name: string;
   color: string;
   isArchived: boolean;
+  hourlyRate: number | null;
 }
 
 export interface Task {

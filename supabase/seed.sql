@@ -47,12 +47,13 @@ begin
   select id into ws from workspaces
     where owner_id = '11111111-1111-1111-1111-111111111111' limit 1;
 
+  insert into projects (workspace_id, name, color, hourly_rate) values
+    (ws, 'SkyInsure', '#2563eb', 600) returning id into p_skyinsure;
+  insert into projects (workspace_id, name, color, hourly_rate) values
+    (ws, 'SkyBistro', '#16a34a', 450) returning id into p_skybistro;
+  insert into projects (workspace_id, name, color, hourly_rate) values
+    (ws, 'MS', '#d97706', 500);
   insert into projects (workspace_id, name, color) values
-    (ws, 'SkyInsure', '#2563eb') returning id into p_skyinsure;
-  insert into projects (workspace_id, name, color) values
-    (ws, 'SkyBistro', '#16a34a') returning id into p_skybistro;
-  insert into projects (workspace_id, name, color) values
-    (ws, 'MS', '#d97706'),
     (ws, 'Other', '#64748b');
 
   insert into labels (workspace_id, name, color) values

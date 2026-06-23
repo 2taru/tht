@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Project } from "@/types/domain";
+import { formatMoney } from "@/lib/money";
 import {
   FK_VIOLATION,
   useDeleteProject,
@@ -29,10 +30,16 @@ import {
 interface ProjectRowProps {
   workspaceId: string | null;
   project: Project;
+  currency: string;
   onEdit: (project: Project) => void;
 }
 
-export function ProjectRow({ workspaceId, project, onEdit }: ProjectRowProps) {
+export function ProjectRow({
+  workspaceId,
+  project,
+  currency,
+  onEdit,
+}: ProjectRowProps) {
   const { t } = useTranslation();
   const setArchived = useSetProjectArchived(workspaceId);
   const remove = useDeleteProject(workspaceId);
@@ -71,6 +78,11 @@ export function ProjectRow({ workspaceId, project, onEdit }: ProjectRowProps) {
         style={{ backgroundColor: project.color }}
       />
       <span className="min-w-0 flex-1 truncate font-medium">{project.name}</span>
+      {project.hourlyRate != null && (
+        <span className="shrink-0 text-sm text-muted-foreground">
+          {formatMoney(project.hourlyRate, currency)}/{t("common.hourShort")}
+        </span>
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

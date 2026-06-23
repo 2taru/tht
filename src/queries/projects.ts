@@ -12,6 +12,7 @@ interface ProjectRow {
   name: string;
   color: string;
   is_archived: boolean;
+  hourly_rate: number | string | null;
 }
 
 function toDomain(row: ProjectRow): Project {
@@ -21,10 +22,11 @@ function toDomain(row: ProjectRow): Project {
     name: row.name,
     color: row.color,
     isArchived: row.is_archived,
+    hourlyRate: row.hourly_rate == null ? null : Number(row.hourly_rate),
   };
 }
 
-const SELECT = "id, workspace_id, name, color, is_archived";
+const SELECT = "id, workspace_id, name, color, is_archived, hourly_rate";
 
 export function projectsKey(workspaceId: string | null) {
   return ["projects", workspaceId] as const;
@@ -50,6 +52,7 @@ export function useProjects(workspaceId: string | null) {
 export interface ProjectInput {
   name: string;
   color: string;
+  hourlyRate: number | null;
 }
 
 export function useCreateProject(workspaceId: string | null) {
@@ -62,6 +65,7 @@ export function useCreateProject(workspaceId: string | null) {
           workspace_id: workspaceId!,
           name: input.name,
           color: input.color,
+          hourly_rate: input.hourlyRate,
         })
         .select(SELECT)
         .single();
@@ -82,7 +86,11 @@ export function useUpdateProject(workspaceId: string | null) {
     ): Promise<Project> => {
       const { data, error } = await supabase
         .from("projects")
-        .update({ name: input.name, color: input.color })
+        .update({
+          name: input.name,
+          color: input.color,
+          hourly_rate: input.hourlyRate,
+        })
         .eq("id", input.id)
         .select(SELECT)
         .single();

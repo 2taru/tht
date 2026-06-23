@@ -6,6 +6,7 @@ export interface ReportRow {
   projectId: string;
   projectName: string;
   projectColor: string;
+  projectRate: number | null;
   taskTitle: string | null;
   description: string | null;
   minutes: number;
@@ -17,7 +18,7 @@ interface RawRow {
   end_minute: number;
   description: string | null;
   project_id: string;
-  projects: { name: string; color: string } | null;
+  projects: { name: string; color: string; hourly_rate: number | string | null } | null;
   tasks: { title: string } | null;
 }
 
@@ -35,7 +36,7 @@ export function useReportEntries(
       const { data, error } = await supabase
         .from("time_entries")
         .select(
-          "entry_date, start_minute, end_minute, description, project_id, projects(name, color), tasks(title)",
+          "entry_date, start_minute, end_minute, description, project_id, projects(name, color, hourly_rate), tasks(title)",
         )
         .eq("workspace_id", workspaceId!)
         .eq("user_id", userId!)
@@ -49,6 +50,8 @@ export function useReportEntries(
         projectId: r.project_id,
         projectName: r.projects?.name ?? "—",
         projectColor: r.projects?.color ?? "#64748b",
+        projectRate:
+          r.projects?.hourly_rate == null ? null : Number(r.projects.hourly_rate),
         taskTitle: r.tasks?.title ?? null,
         description: r.description,
         minutes: r.end_minute - r.start_minute,

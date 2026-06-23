@@ -2,8 +2,10 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import type { Project } from "@/types/domain";
+import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useProjects } from "@/queries/projects";
+import { useSettings } from "@/queries/settings";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,9 +14,12 @@ import { ProjectDialog } from "./ProjectDialog";
 
 export function ProjectsPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { workspace } = useActiveWorkspace();
   const workspaceId = workspace?.id ?? null;
   const { data: projects, isLoading, isError } = useProjects(workspaceId);
+  const { data: settings } = useSettings(user?.id ?? null);
+  const currency = settings?.currency ?? "UAH";
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -75,6 +80,7 @@ export function ProjectsPage() {
                   key={p.id}
                   workspaceId={workspaceId}
                   project={p}
+                  currency={currency}
                   onEdit={openEdit}
                 />
               ))
@@ -90,6 +96,7 @@ export function ProjectsPage() {
                   key={p.id}
                   workspaceId={workspaceId}
                   project={p}
+                  currency={currency}
                   onEdit={openEdit}
                 />
               ))

@@ -9,6 +9,7 @@
     "loading": "Завантаження…",
     "today": "Сьогодні",
     "hours": "год",
+    "hourShort": "год",
     "signOut": "Вийти",
     "actions": "Дії",
     "error": "Сталася помилка. Спробуйте ще раз."
@@ -137,6 +138,9 @@
     "nameRequired": "Вкажіть назву",
     "color": "Колір",
     "colorInvalid": "Невірний hex-колір (напр. #6366f1)",
+    "hourlyRate": "Погодинна ставка",
+    "ratePlaceholder": "Напр. 500 (порожньо — без білінгу)",
+    "rateInvalid": "Ставка має бути невідʼємним числом",
     "active": "Активні",
     "archived": "Архівні",
     "emptyActive": "Ще немає проєктів. Створіть перший.",
@@ -163,7 +167,8 @@
     "csvProject": "Проєкт",
     "csvTask": "Задача",
     "csvDescription": "Опис",
-    "csvHours": "Години"
+    "csvHours": "Години",
+    "csvAmount": "Сума"
   },
   "settings": {
     "title": "Налаштування",
@@ -178,6 +183,7 @@
     "weekStart": "Перший день тижня",
     "monday": "Понеділок",
     "sunday": "Неділя",
+    "currency": "Валюта",
     "appearance": "Вигляд",
     "theme": "Тема",
     "light": "Світла",

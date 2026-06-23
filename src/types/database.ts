@@ -88,6 +88,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          hourly_rate: number | null
           id: string
           is_archived: boolean
           name: string
@@ -96,6 +97,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          hourly_rate?: number | null
           id?: string
           is_archived?: boolean
           name: string
@@ -104,6 +106,7 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          hourly_rate?: number | null
           id?: string
           is_archived?: boolean
           name?: string
@@ -299,6 +302,7 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          currency: string
           day_end_minute: number
           day_start_minute: number
           grid_step_minutes: number
@@ -308,6 +312,7 @@ export type Database = {
           week_start: number
         }
         Insert: {
+          currency?: string
           day_end_minute?: number
           day_start_minute?: number
           grid_step_minutes?: number
@@ -317,6 +322,7 @@ export type Database = {
           week_start?: number
         }
         Update: {
+          currency?: string
           day_end_minute?: number
           day_start_minute?: number
           grid_step_minutes?: number

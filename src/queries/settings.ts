@@ -10,6 +10,7 @@ interface SettingsRow {
   week_start: number;
   theme: string;
   locale: string;
+  currency: string;
 }
 
 function toDomain(row: SettingsRow): UserSettings {
@@ -21,6 +22,7 @@ function toDomain(row: SettingsRow): UserSettings {
     weekStart: row.week_start,
     theme: row.theme,
     locale: row.locale,
+    currency: row.currency,
   };
 }
 
@@ -38,7 +40,7 @@ export function useSettings(userId: string | null) {
       const { data, error } = await supabase
         .from("user_settings")
         .select(
-          "user_id, day_start_minute, day_end_minute, grid_step_minutes, week_start, theme, locale",
+          "user_id, day_start_minute, day_end_minute, grid_step_minutes, week_start, theme, locale, currency",
         )
         .eq("user_id", userId!)
         .single();
@@ -53,6 +55,7 @@ export interface SettingsInput {
   dayEndMinute: number;
   gridStepMinutes: number;
   weekStart: number;
+  currency: string;
 }
 
 export function useUpdateSettings(userId: string | null) {
@@ -66,6 +69,7 @@ export function useUpdateSettings(userId: string | null) {
           day_end_minute: input.dayEndMinute,
           grid_step_minutes: input.gridStepMinutes,
           week_start: input.weekStart,
+          currency: input.currency,
         })
         .eq("user_id", userId!);
       if (error) throw error;

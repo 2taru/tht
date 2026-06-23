@@ -24,8 +24,10 @@ import {
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useReportEntries, type ReportRow } from "@/queries/reports";
+import { useSettings } from "@/queries/settings";
 import { fromISODate, toISODate } from "@/lib/dates";
 import { formatHours, minutesToHours } from "@/lib/time";
+import { billableAmount, formatMoney } from "@/lib/money";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +62,8 @@ export function ReportsPage() {
     from,
     to,
   );
+  const { data: settings } = useSettings(userId);
+  const currency = settings?.currency ?? "UAH";
 
   function setRange(nextFrom: string, nextTo: string) {
     const p = new URLSearchParams(params);
@@ -91,12 +95,16 @@ export function ReportsPage() {
   }, [rows]);
 
   const byProject = useMemo(() => {
-    const map = new Map<string, { name: string; color: string; minutes: number }>();
+    const map = new Map<
+      string,
+      { name: string; color: string; minutes: number; rate: number | null }
+    >();
     (rows ?? []).forEach((r) => {
       const cur = map.get(r.projectId) ?? {
         name: r.projectName,
         color: r.projectColor,
         minutes: 0,
+        rate: r.projectRate,
       };
       cur.minutes += r.minutes;
       map.set(r.projectId, cur);
@@ -105,6 +113,11 @@ export function ReportsPage() {
   }, [rows]);
 
   const totalMinutes = (rows ?? []).reduce((s, r) => s + r.minutes, 0);
+  const totalAmount = byProject.reduce(
+    (s, p) => s + billableAmount(p.minutes, p.rate),
+    0,
+  );
+  const hasBillable = byProject.some((p) => p.rate != null);
 
   function handleExport() {
     const headers = [
@@ -113,6 +126,7 @@ export function ReportsPage() {
       t("reports.csvTask"),
       t("reports.csvDescription"),
       t("reports.csvHours"),
+      t("reports.csvAmount"),
     ];
     const csvRows = (rows ?? []).map((r: ReportRow) => [
       r.date,
@@ -120,6 +134,9 @@ export function ReportsPage() {
       r.taskTitle ?? "",
       r.description ?? "",
       (r.minutes / 60).toFixed(2),
+      r.projectRate != null
+        ? billableAmount(r.minutes, r.projectRate).toFixed(2)
+        : "",
     ]);
     downloadCsv(`tht-${from}_${to}.csv`, toCsv(headers, csvRows));
   }
@@ -251,14 +268,26 @@ export function ReportsPage() {
                       style={{ backgroundColor: p.color }}
                     />
                     <span className="flex-1">{p.name}</span>
-                    <span className="font-medium">
+                    {hasBillable && (
+                      <span className="w-28 text-right text-muted-foreground">
+                        {p.rate != null
+                          ? formatMoney(billableAmount(p.minutes, p.rate), currency)
+                          : "—"}
+                      </span>
+                    )}
+                    <span className="w-24 text-right font-medium">
                       {formatHours(p.minutes)} {t("common.hours")}
                     </span>
                   </div>
                 ))}
                 <div className="flex items-center gap-3 py-2 font-semibold">
                   <span className="flex-1 pl-6">{t("reports.total")}</span>
-                  <span>
+                  {hasBillable && (
+                    <span className="w-28 text-right">
+                      {formatMoney(totalAmount, currency)}
+                    </span>
+                  )}
+                  <span className="w-24 text-right">
                     {formatHours(totalMinutes)} {t("common.hours")}
                   </span>
                 </div>

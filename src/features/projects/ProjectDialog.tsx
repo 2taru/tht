@@ -25,6 +25,10 @@ import { ColorPicker, isValidHex } from "./ColorPicker";
 const schema = z.object({
   name: z.string().trim().min(1),
   color: z.string().refine(isValidHex),
+  // Порожньо = без ставки; інакше невідʼємне число.
+  rate: z
+    .string()
+    .refine((v) => v.trim() === "" || Number(v) >= 0, "rate"),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -55,7 +59,7 @@ export function ProjectDialog({
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", color: "#6366f1" },
+    defaultValues: { name: "", color: "#6366f1", rate: "" },
   });
 
   useEffect(() => {
@@ -63,12 +67,17 @@ export function ProjectDialog({
       reset({
         name: project?.name ?? "",
         color: project?.color ?? "#6366f1",
+        rate: project?.hourlyRate != null ? String(project.hourlyRate) : "",
       });
     }
   }, [open, project, reset]);
 
   async function onSubmit(values: FormValues) {
-    const input: ProjectInput = { name: values.name.trim(), color: values.color };
+    const input: ProjectInput = {
+      name: values.name.trim(),
+      color: values.color,
+      hourlyRate: values.rate.trim() === "" ? null : Number(values.rate),
+    };
     try {
       if (isEdit && project) {
         await update.mutateAsync({ id: project.id, ...input });
@@ -108,6 +117,20 @@ export function ProjectDialog({
             />
             {errors.color && (
               <p className="text-sm text-destructive">{t("projects.colorInvalid")}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="project-rate">{t("projects.hourlyRate")}</Label>
+            <Input
+              id="project-rate"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder={t("projects.ratePlaceholder")}
+              {...register("rate")}
+            />
+            {errors.rate && (
+              <p className="text-sm text-destructive">{t("projects.rateInvalid")}</p>
             )}
           </div>
           <DialogFooter>

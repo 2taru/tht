@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/card";
 
 const STEPS = [5, 10, 15, 30];
+const CURRENCIES = ["UAH", "USD", "EUR", "PLN", "GBP"];
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -72,6 +73,7 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
   const [end, setEnd] = useState(minutesToTimeValue(settings.dayEndMinute));
   const [step, setStep] = useState(String(settings.gridStepMinutes));
   const [weekStart, setWeekStart] = useState(String(settings.weekStart));
+  const [currency, setCurrency] = useState(settings.currency);
 
   const startMinute = timeValueToMinutes(start);
   const endMinute = timeValueToMinutes(end);
@@ -84,6 +86,7 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
       dayEndMinute: endMinute,
       gridStepMinutes: Number(step),
       weekStart: Number(weekStart),
+      currency,
     };
     try {
       await Promise.all([
@@ -167,6 +170,21 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
                 <SelectContent>
                   <SelectItem value="1">{t("settings.monday")}</SelectItem>
                   <SelectItem value="0">{t("settings.sunday")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("settings.currency")}</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
