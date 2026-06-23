@@ -104,7 +104,7 @@ export function TaskBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid min-h-0 flex-1 grid-cols-3 gap-3">
+      <div className="grid min-h-0 flex-1 auto-cols-[minmax(260px,1fr)] grid-flow-col gap-3 overflow-x-auto">
         {STATUSES.map((status) => (
           <BoardColumn
             key={status}

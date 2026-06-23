@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, CopyPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, CopyPlus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { Project, TimeEntry } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -112,6 +112,20 @@ export function TimesheetPage() {
     setDraft(d);
     setDialogOpen(true);
   }
+  // Швидке додавання (мобільний): найближчий вільний 30-хв слот видимого дня.
+  function quickAdd() {
+    const today = todayISO();
+    const targetDay =
+      view === "day" ? date : days.includes(today) ? today : fromISO;
+    const dayEntries = entriesByDay.get(targetDay) ?? [];
+    const slot = findFreeSlot(dayEntries, gridStart, gridEnd, 30, gridStart);
+    if (slot === null) {
+      toast.error(t("timesheet.noFreeSlot"));
+      return;
+    }
+    openCreate({ entryDate: targetDay, startMinute: slot, endMinute: slot + 30 });
+  }
+
   function openEdit(entry: TimeEntry) {
     setDraft({
       id: entry.id,
@@ -291,7 +305,7 @@ export function TimesheetPage() {
               );
               const isToday = d === todayISO();
               return (
-                <div key={d} className="flex min-w-0 flex-1 flex-col border-l">
+                <div key={d} className="flex min-w-28 flex-1 flex-col border-l">
                   <div
                     className={`flex h-10 flex-col items-center justify-center text-xs ${isToday ? "bg-accent font-semibold" : ""}`}
                   >
@@ -324,6 +338,14 @@ export function TimesheetPage() {
           </div>
         </div>
       )}
+
+      <Button
+        onClick={quickAdd}
+        className="fixed bottom-5 right-5 z-30 size-12 rounded-full shadow-lg lg:hidden"
+        aria-label={t("timesheet.newEntry")}
+      >
+        <Plus className="size-5" />
+      </Button>
 
       <EntryDialog
         open={dialogOpen}

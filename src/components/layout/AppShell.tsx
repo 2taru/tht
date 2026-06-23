@@ -10,7 +10,7 @@ export function AppShell() {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-3 sm:p-6">
           <Suspense fallback={<Skeleton className="h-full min-h-96 w-full" />}>
             <Outlet />
           </Suspense>

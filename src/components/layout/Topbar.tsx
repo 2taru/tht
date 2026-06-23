@@ -11,6 +11,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { MobileNav } from "./MobileNav";
 
 export function Topbar() {
   const { t } = useTranslation();
@@ -19,8 +20,11 @@ export function Topbar() {
   const initial = (user?.email ?? "?").charAt(0).toUpperCase();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-4">
-      <WorkspaceSwitcher />
+    <header className="flex h-14 items-center justify-between border-b px-2 sm:px-4">
+      <div className="flex items-center gap-1">
+        <MobileNav />
+        <WorkspaceSwitcher />
+      </div>
       <div className="flex items-center gap-1">
         <ThemeToggle />
         <DropdownMenu>
