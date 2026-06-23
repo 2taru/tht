@@ -1,0 +1,90 @@
+{
+  "common": {
+    "appName": "tht",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "create": "Створити",
+    "loading": "Завантаження…",
+    "today": "Сьогодні",
+    "hours": "год",
+    "signOut": "Вийти",
+    "actions": "Дії",
+    "error": "Сталася помилка. Спробуйте ще раз."
+  },
+  "nav": {
+    "timesheet": "Таймшит",
+    "tasks": "Задачі",
+    "reports": "Звіти",
+    "projects": "Проєкти",
+    "settings": "Налаштування"
+  },
+  "auth": {
+    "login": "Увійти",
+    "register": "Зареєструватися",
+    "email": "Email",
+    "password": "Пароль",
+    "loginTitle": "Вхід",
+    "registerTitle": "Реєстрація",
+    "googleSignIn": "Увійти через Google",
+    "noAccount": "Немає акаунту?",
+    "haveAccount": "Вже є акаунт?",
+    "signingIn": "Входимо…",
+    "invalidCredentials": "Невірний email або пароль",
+    "genericError": "Сталася помилка. Спробуйте ще раз."
+  },
+  "timesheet": {
+    "title": "Таймшит",
+    "week": "Тиждень",
+    "day": "День",
+    "total": "Разом",
+    "newEntry": "Новий запис",
+    "editEntry": "Редагувати запис",
+    "project": "Проєкт",
+    "selectProject": "Оберіть проєкт",
+    "description": "Опис",
+    "start": "Початок",
+    "end": "Кінець",
+    "duration": "Тривалість",
+    "badRange": "Кінець має бути пізніше за початок"
+  },
+  "tasks": {
+    "title": "Задачі",
+    "board": "Дошка",
+    "list": "Список"
+  },
+  "projects": {
+    "title": "Проєкти",
+    "new": "Новий проєкт",
+    "createTitle": "Новий проєкт",
+    "editTitle": "Редагувати проєкт",
+    "name": "Назва",
+    "nameRequired": "Вкажіть назву",
+    "color": "Колір",
+    "colorInvalid": "Невірний hex-колір (напр. #6366f1)",
+    "active": "Активні",
+    "archived": "Архівні",
+    "emptyActive": "Ще немає проєктів. Створіть перший.",
+    "emptyArchived": "Архівних проєктів немає.",
+    "archive": "Архівувати",
+    "unarchive": "Розархівувати",
+    "deleteTitle": "Видалити проєкт?",
+    "deleteConfirm": "Проєкт «{{name}}» буде видалено остаточно.",
+    "deleteBlocked": "Не можна видалити: є записи часу. Заархівуйте проєкт."
+  },
+  "reports": {
+    "title": "Звіти"
+  },
+  "settings": {
+    "title": "Налаштування",
+    "theme": "Тема",
+    "light": "Світла",
+    "dark": "Темна",
+    "system": "Системна"
+  },
+  "errors": {
+    "notFound": "Сторінку не знайдено",
+    "overlap": "Інтервал перетинається з наявним записом"
+  }
+}
