@@ -181,6 +181,44 @@ export function useUpdateEntry(ctx: MutationCtx) {
   });
 }
 
+/**
+ * Масова вставка записів (копія дня/тижня). Вставляємо по одному й рахуємо
+ * пропущені через перетин (23P01), щоб копія не падала через одну колізію.
+ */
+export function useBulkCreateEntries(ctx: MutationCtx) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      rows: EntryInput[],
+    ): Promise<{ created: number; skipped: number }> => {
+      let created = 0;
+      let skipped = 0;
+      for (const r of rows) {
+        const { error } = await supabase.from("time_entries").insert({
+          workspace_id: ctx.workspaceId!,
+          user_id: ctx.userId!,
+          project_id: r.projectId,
+          task_id: r.taskId,
+          entry_date: r.entryDate,
+          start_minute: r.startMinute,
+          end_minute: r.endMinute,
+          description: r.description,
+        });
+        if (error) {
+          if (error.code === OVERLAP_VIOLATION) skipped++;
+          else throw error;
+        } else {
+          created++;
+        }
+      }
+      return { created, skipped };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ctx.queryKey });
+    },
+  });
+}
+
 export function useDeleteEntry(ctx: MutationCtx) {
   const qc = useQueryClient();
   return useMutation({

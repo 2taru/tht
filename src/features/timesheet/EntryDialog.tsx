@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import type { QueryKey } from "@tanstack/react-query";
 import type { Project } from "@/types/domain";
@@ -51,6 +52,7 @@ interface EntryDialogProps {
   workspaceId: string | null;
   userId: string | null;
   queryKey: QueryKey;
+  onDuplicate: (draft: EntryDraft) => void;
 }
 
 export function EntryDialog({
@@ -83,6 +85,7 @@ interface EntryFormProps {
   userId: string | null;
   queryKey: QueryKey;
   onClose: () => void;
+  onDuplicate: (draft: EntryDraft) => void;
 }
 
 const NO_TASK = "none";
@@ -95,6 +98,7 @@ function EntryForm({
   userId,
   queryKey,
   onClose,
+  onDuplicate,
 }: EntryFormProps) {
   const { t } = useTranslation();
   const ctx = { workspaceId, userId, queryKey };
@@ -157,6 +161,18 @@ function EntryForm({
     } catch {
       toast.error(t("common.error"));
     }
+  }
+
+  function handleDuplicate() {
+    onDuplicate({
+      entryDate: draft.entryDate,
+      startMinute,
+      endMinute,
+      projectId: projectId || undefined,
+      taskId: taskId === NO_TASK ? null : taskId,
+      description: description.trim() || null,
+    });
+    onClose();
   }
 
   return (
@@ -255,9 +271,15 @@ function EntryForm({
 
       <DialogFooter className="sm:justify-between">
         {isEdit ? (
-          <Button variant="destructive" onClick={handleDelete}>
-            {t("common.delete")}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="destructive" onClick={handleDelete}>
+              {t("common.delete")}
+            </Button>
+            <Button variant="outline" onClick={handleDuplicate} disabled={!canSave}>
+              <Copy className="size-4" />
+              {t("timesheet.duplicate")}
+            </Button>
+          </div>
         ) : (
           <span />
         )}
