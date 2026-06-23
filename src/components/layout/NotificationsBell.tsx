@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
+import { m } from "motion/react";
 import { Bell } from "lucide-react";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useTasks } from "@/queries/tasks";
@@ -55,14 +56,17 @@ export function NotificationsBell() {
         <Button variant="ghost" size="icon" className="relative" aria-label={t("notifications.title")}>
           <Bell className="size-5" />
           {count > 0 && (
-            <span
+            <m.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 25 }}
               className={cn(
                 "absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold text-white",
                 urgent > 0 ? "bg-destructive" : "bg-sky-500",
               )}
             >
               {count > 9 ? "9+" : count}
-            </span>
+            </m.span>
           )}
         </Button>
       </DropdownMenuTrigger>

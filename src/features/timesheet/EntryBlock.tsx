@@ -1,3 +1,4 @@
+import { m } from "motion/react";
 import type { Project, TimeEntry } from "@/types/domain";
 import { formatHours, minutesToLabel } from "@/lib/time";
 import { minuteToY, PX_PER_MIN } from "./geometry";
@@ -32,7 +33,10 @@ export function EntryBlock({
   }
 
   return (
-    <div
+    <m.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.15 }}
       className="group absolute inset-x-1 z-10 overflow-hidden rounded-md border-l-4 text-xs text-white shadow-sm"
       style={{ top, height, backgroundColor: color, borderColor: "rgba(0,0,0,0.25)" }}
     >
@@ -63,6 +67,6 @@ export function EntryBlock({
         className="absolute inset-x-0 bottom-0 z-20 h-1.5 cursor-ns-resize bg-black/20 opacity-0 group-hover:opacity-100"
         onPointerDown={handleResize("bottom")}
       />
-    </div>
+    </m.div>
   );
 }

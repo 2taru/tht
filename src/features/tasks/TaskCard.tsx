@@ -1,5 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { m } from "motion/react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
@@ -26,13 +27,13 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
     useSortable({ id: task.id });
 
   return (
-    <div
+    <m.div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        "group rounded-lg border bg-card p-3 shadow-sm",
-        isDragging && "opacity-40",
-      )}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isDragging ? 0.4 : 1 }}
+      transition={{ duration: 0.18 }}
+      className={cn("group rounded-lg border bg-card p-3 shadow-sm")}
     >
       <div className="flex items-start gap-2">
         <button
@@ -110,6 +111,6 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
           )}
         </button>
       </div>
-    </div>
+    </m.div>
   );
 }
