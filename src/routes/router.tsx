@@ -4,7 +4,10 @@ import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 import { AppShell } from "@/components/layout/AppShell";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { RegisterPage } from "@/features/auth/RegisterPage";
+import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage";
+import { UpdatePasswordPage } from "@/features/auth/UpdatePasswordPage";
 import { NotFoundPage } from "./NotFoundPage";
+import { RouteError } from "./RouteError";
 
 // Важкі екрани — lazy (recharts, dnd-kit тощо не тягнуться у стартовий бандл).
 const TimesheetPage = lazy(() =>
@@ -37,8 +40,11 @@ const TeamPage = lazy(() =>
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
+  { path: "/reset-password", element: <ResetPasswordPage /> },
+  { path: "/update-password", element: <UpdatePasswordPage /> },
   {
     element: <ProtectedRoute />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <AppShell />,

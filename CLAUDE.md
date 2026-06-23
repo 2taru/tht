@@ -22,7 +22,9 @@ multi-tenant (`workspace_id` всюди). Мова продукту — укра
 ⚠️ Усі `security definer` функції ОБОВʼЯЗКОВО з `set search_path = public`
 (інакше тригери на auth падають у контексті GoTrue). ✅ **Швидкий ввід**:
 дублювання запису в найближчий вільний слот (`findFreeSlot`), копія дня/тижня в
-наступний період (`useBulkCreateEntries`, пропуск перетинів). Далі по беклогу —
+наступний період (`useBulkCreateEntries`, пропуск перетинів). ✅ **Auth/надійність**:
+скидання пароля (`/reset-password` + `/update-password`), UX підтвердження email,
+route-level error boundary (`RouteError`). Далі по беклогу — realtime для команд /
 мобільна адаптація / білінг / клієнти / імпорт. Цей файл оновлюй у міру появи коду.
 
 **Локальний вхід (seed):** `test@tht.local` / `password123`. Dev-сервер слухає на

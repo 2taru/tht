@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -17,13 +17,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
+const schema = z.object({ password: z.string().min(6) });
 type FormValues = z.infer<typeof schema>;
 
-export function LoginPage() {
+/**
+ * Сторінка для лінка відновлення з листа: Supabase (detectSessionInUrl) ставить
+ * recovery-сесію, тут користувач задає новий пароль.
+ */
+export function UpdatePasswordPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -35,45 +36,31 @@ export function LoginPage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword(values);
+    const { error } = await supabase.auth.updateUser({ password: values.password });
     setSubmitting(false);
     if (error) {
-      toast.error(t("auth.invalidCredentials"));
+      toast.error(t("auth.resetExpired"));
       return;
     }
+    toast.success(t("auth.passwordUpdated"));
     navigate("/timesheet", { replace: true });
-  }
-
-  async function signInWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/timesheet` },
-    });
-    if (error) toast.error(t("auth.genericError"));
   }
 
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{t("auth.loginTitle")}</CardTitle>
-          <CardDescription>{t("common.appName")}</CardDescription>
+          <CardTitle>{t("auth.newPasswordTitle")}</CardTitle>
+          <CardDescription>{t("auth.newPasswordDescription")}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("auth.email")}</Label>
-              <Input id="email" type="email" autoComplete="email" {...register("email")} />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 {...register("password")}
               />
               {errors.password && (
@@ -81,23 +68,9 @@ export function LoginPage() {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? t("auth.signingIn") : t("auth.login")}
+              {t("common.save")}
             </Button>
           </form>
-          <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
-            {t("auth.googleSignIn")}
-          </Button>
-          <p className="text-center text-sm">
-            <Link to="/reset-password" className="text-muted-foreground underline">
-              {t("auth.forgotPassword")}
-            </Link>
-          </p>
-          <p className="text-center text-sm text-muted-foreground">
-            {t("auth.noAccount")}{" "}
-            <Link to="/register" className="text-foreground underline">
-              {t("auth.register")}
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>

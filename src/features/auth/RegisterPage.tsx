@@ -27,6 +27,7 @@ export function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState(false);
   const {
     register,
     handleSubmit,
@@ -35,10 +36,15 @@ export function RegisterPage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp(values);
+    const { data, error } = await supabase.auth.signUp(values);
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
+      return;
+    }
+    // Якщо проєкт вимагає підтвердження email — сесії ще немає.
+    if (!data.session) {
+      setConfirmEmail(true);
       return;
     }
     navigate("/timesheet", { replace: true });
@@ -52,6 +58,10 @@ export function RegisterPage() {
           <CardDescription>{t("common.appName")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {confirmEmail ? (
+            <p className="text-sm text-muted-foreground">{t("auth.confirmEmail")}</p>
+          ) : (
+            <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.email")}</Label>
@@ -82,6 +92,8 @@ export function RegisterPage() {
               {t("auth.login")}
             </Link>
           </p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
