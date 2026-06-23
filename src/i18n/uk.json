@@ -52,7 +52,39 @@
   "tasks": {
     "title": "Задачі",
     "board": "Дошка",
-    "list": "Список"
+    "list": "Список",
+    "new": "Нова задача",
+    "createTitle": "Нова задача",
+    "editTitle": "Редагувати задачу",
+    "titleField": "Назва",
+    "descriptionField": "Опис",
+    "project": "Проєкт",
+    "noProject": "Без проєкту",
+    "dueDate": "Дедлайн",
+    "statusField": "Статус",
+    "priorityField": "Пріоритет",
+    "labels": "Теги",
+    "addLabels": "Додати теги",
+    "newLabel": "Новий тег…",
+    "logged": "Залоговано",
+    "drag": "Перетягнути",
+    "empty": "Задач немає",
+    "allStatuses": "Усі статуси",
+    "allPriorities": "Усі пріоритети",
+    "allProjects": "Усі проєкти",
+    "sortPriority": "За пріоритетом",
+    "sortDue": "За дедлайном",
+    "sortTitle": "За назвою",
+    "status": {
+      "todo": "До виконання",
+      "in_progress": "В роботі",
+      "done": "Готово"
+    },
+    "priority": {
+      "low": "Низький",
+      "medium": "Середній",
+      "high": "Високий"
+    }
   },
   "projects": {
     "title": "Проєкти",

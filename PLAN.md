@@ -725,10 +725,16 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 - [x] Денні/тижневі підсумки + розбивка по проєктах (бейджі)
 - [ ] Опц. зв'язок запису з задачею (task picker) — додамо у Phase 3, коли є задачі
 
-### Phase 3 — Задачі
-- [ ] CRUD задач; теги (labels) + task_labels
-- [ ] Дошка (3 колонки, dnd-kit, status+position) + Список (фільтри/сортування)
-- [ ] TaskDialog з усіма полями; прив'язка time_entries ↔ task; години на задачі
+### Phase 3 — Задачі ✅ (завершено 2026-06-23)
+- [x] CRUD задач (`queries/tasks.ts`); теги (`queries/labels.ts`) + task_labels
+      (set-замість-merge); інлайн-створення тегів у `LabelPicker`
+- [x] Дошка (3 колонки, dnd-kit: drag-ручка, `closestCorners`, status+дробова position,
+      оптимістичний `useMoveTask`) + Список (фільтри статус/пріоритет/проєкт + сортування)
+- [x] TaskDialog з усіма полями (назва/опис/проєкт/статус/пріоритет/дедлайн/теги);
+      показ суми залогованих годин (`useTaskMinutes`). Перевірено наскрізь по REST.
+
+> Лишилось дрібне: повноцінна прив'язка time_entry → task у EntryDialog (task picker)
+> — хвіст Phase 2; зробимо разом із поліровкою.
 
 ### Phase 4 — Звіти
 - [ ] Фільтри періоду; графіки (recharts); таблиця підсумків

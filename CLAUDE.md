@@ -9,13 +9,12 @@
 multi-tenant (`workspace_id` всюди). Мова продукту — українська (i18n-ready).
 
 ## Поточний стан
-**Phase 0–2 завершено** (Phase 2 — без drag-resize/move блоків; редагування поки
-через діалог). Каркас, БД, auth, layout, CRUD проєктів, **таймшит-ядро**
-(`features/timesheet`, `queries/timeEntries.ts`, `queries/settings.ts`): сітка
-тиждень/день, drag-створення зі снапом і прев'ю, EntryDialog (створення/редагування/
-видалення), перевірка перетину (UI + констрейнт `23P01`), денні/тижневі підсумки,
-оптимістичні апдейти. `build`/`lint`/`test` зелені; читання/запис/перетин перевірено
-під RLS. Наступне — **Phase 3 (Задачі)** + хвіст Phase 2 (drag-resize, task-picker).
+**Phase 0–3 завершено.** Каркас, БД, auth, layout, CRUD проєктів, таймшит-ядро,
+**задачі** (`features/tasks`, `queries/tasks.ts`, `queries/labels.ts`): Kanban-дошка
+(dnd-kit, drag-ручка, status+дробова position, оптимістичний move) + список із
+фільтрами/сортуванням, TaskDialog (усі поля + теги з інлайн-створенням + сума
+залогованих годин). `build`/`lint`/`test` зелені; шляхи даних перевірено під RLS.
+Наступне — **Phase 4 (Звіти)**; хвіст: drag-resize таймшита, task-picker в EntryDialog.
 Цей файл оновлюй у міру появи реального коду/скриптів.
 
 **Локальний вхід (seed):** `test@tht.local` / `password123`. Dev-сервер слухає на

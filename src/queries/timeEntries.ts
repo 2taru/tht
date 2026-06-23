@@ -77,6 +77,25 @@ export function useEntriesRange(
   });
 }
 
+/** Сумарні хвилини, залоговані на задачу (для діалогу задачі). */
+export function useTaskMinutes(taskId: string | null) {
+  return useQuery({
+    queryKey: ["task-minutes", taskId],
+    enabled: !!taskId,
+    queryFn: async (): Promise<number> => {
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select("start_minute, end_minute")
+        .eq("task_id", taskId!);
+      if (error) throw error;
+      return (data ?? []).reduce(
+        (sum, e) => sum + (e.end_minute - e.start_minute),
+        0,
+      );
+    },
+  });
+}
+
 export interface EntryInput {
   projectId: string;
   taskId: string | null;
