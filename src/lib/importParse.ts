@@ -47,17 +47,35 @@ function normalizeRow(raw: Record<string, unknown>): RawFields {
   return out;
 }
 
-/** "2026-06-23" | "23.06.2026" | "23/06/2026" → ISO або null. */
+/** Чи це реальна календарна дата (відсікає 2026-13-40 тощо). */
+function isRealDate(y: number, m: number, d: number): boolean {
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() === m - 1 &&
+    dt.getUTCDate() === d
+  );
+}
+
+/** "2026-06-23" | "23.06.2026" | "23/06/2026" → ISO або null (з валідацією). */
 function parseDate(value: string | undefined): string | null {
   if (!value) return null;
+  let y: number, m: number, d: number;
   const iso = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (iso) return value;
   const dmy = value.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
-  if (dmy) {
-    const [, d, m, y] = dmy;
-    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  if (iso) {
+    y = Number(iso[1]);
+    m = Number(iso[2]);
+    d = Number(iso[3]);
+  } else if (dmy) {
+    d = Number(dmy[1]);
+    m = Number(dmy[2]);
+    y = Number(dmy[3]);
+  } else {
+    return null;
   }
-  return null;
+  if (!isRealDate(y, m, d)) return null;
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 /** "9:00" | "09:30" | "9:00:00" | "9:00 AM" → хвилини від півночі, або null. */

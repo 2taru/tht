@@ -23,6 +23,18 @@ describe("parseEntriesFile", () => {
     ]);
   });
 
+  it("відсікає неіснуючі дати", async () => {
+    const csv =
+      "date,project,start,end,description\n" +
+      "2026-13-40,A,09:00,10:00,bad-date\n" +
+      "32.01.2026,B,09:00,10:00,bad-day\n" +
+      "2026-02-15,C,09:00,10:00,ok\n";
+    const { rows, invalid } = await parseEntriesFile(csvFile(csv));
+    expect(rows.length).toBe(1);
+    expect(rows[0].projectName).toBe("C");
+    expect(invalid).toBe(2);
+  });
+
   it("рахує некоректні рядки (end<=start, без дати)", async () => {
     const csv =
       "date,project,start,end,description\n" +

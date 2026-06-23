@@ -27,15 +27,17 @@ export function useImportEntries(workspaceId: string | null, userId: string | nu
       const byName = new Map<string, string>();
       (projs ?? []).forEach((p) => byName.set(p.name.toLowerCase(), p.id));
 
-      // Автостворення відсутніх проєктів.
+      // Автостворення відсутніх проєктів (дедуп за регістром, щоб не плодити дублі).
       let projectsCreated = 0;
-      const missing = [
-        ...new Set(
-          rows
-            .map((r) => r.projectName)
-            .filter((n) => !byName.has(n.toLowerCase())),
-        ),
-      ];
+      const seen = new Set<string>();
+      const missing: string[] = [];
+      for (const r of rows) {
+        const lower = r.projectName.toLowerCase();
+        if (!byName.has(lower) && !seen.has(lower)) {
+          seen.add(lower);
+          missing.push(r.projectName);
+        }
+      }
       for (const name of missing) {
         const { data, error } = await supabase
           .from("projects")

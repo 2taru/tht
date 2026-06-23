@@ -89,6 +89,15 @@ Supabase CLI підключено як dev-залежність (`pnpm exec supa
 - **БД — snake_case**, доменні TS-типи — camelCase (мапінг у `queries`).
 - Тема світла/темна через next-themes; кольори проєктів — користувацькі hex.
 
+## Відомі нюанси / QA
+- **RLS команд** (міграція `0007`): owner-рядок `workspace_members` захищений —
+  ні admin, ні хтось інший не може його видалити/понизити, і ніхто не підвищується
+  до `owner` через API (передача власності — окрема майбутня фіча). service_role має
+  table-grants (потрібно для адмін-тулінгу/Edge Functions).
+- **Локальний auth після `db:reset`**: Kong/GoTrue інколи десинкають (`502` чи
+  «invalid response from upstream»). Це **не баг застосунку** —
+  `docker restart supabase_auth_tht supabase_kong_tht` і зачекати `/auth/v1/health`=200.
+
 ## Гайдрейли
 - Не комітити секрети: `.env*` у `.gitignore`, є `.env.example`. Ключі Supabase —
   через `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
