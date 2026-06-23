@@ -61,12 +61,14 @@ begin
   insert into labels (workspace_id, name, color) values
     (ws, 'feature', '#7c3aed');
 
-  insert into tasks (workspace_id, project_id, title, status, priority, created_by)
+  insert into tasks (workspace_id, project_id, title, status, priority, due_date, created_by)
     values
     (ws, p_skyinsure, 'Полагодити форму оплати', 'in_progress', 'high',
-      '11111111-1111-1111-1111-111111111111'),
+      current_date - 1, '11111111-1111-1111-1111-111111111111'),
     (ws, p_skybistro, 'Меню: фільтр по категоріях', 'todo', 'medium',
-      '11111111-1111-1111-1111-111111111111');
+      current_date + 2, '11111111-1111-1111-1111-111111111111'),
+    (ws, p_skyinsure, 'Дзвінок клієнту', 'todo', 'medium',
+      current_date, '11111111-1111-1111-1111-111111111111');
 
   insert into time_entries
     (workspace_id, user_id, project_id, entry_date, start_minute, end_minute, description)

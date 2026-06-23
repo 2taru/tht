@@ -4,7 +4,9 @@ import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import type { Project, TaskPriority, TaskStatus } from "@/types/domain";
 import type { TaskWithLabels } from "@/queries/tasks";
-import { fromISODate } from "@/lib/dates";
+import { fromISODate, todayISO } from "@/lib/dates";
+import { classifyDue } from "@/lib/dueDate";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -136,7 +138,23 @@ export function TaskList({
                 <span className="w-28 truncate text-xs text-muted-foreground">
                   {tk.assigneeId ? membersById.get(tk.assigneeId) : ""}
                 </span>
-                <span className="w-16 text-right text-xs text-muted-foreground">
+                <span
+                  className={cn(
+                    "w-16 text-right text-xs",
+                    (() => {
+                      if (!tk.dueDate) return "text-muted-foreground";
+                      const due =
+                        tk.status === "done"
+                          ? "none"
+                          : classifyDue(tk.dueDate, todayISO());
+                      return due === "overdue"
+                        ? "font-medium text-destructive"
+                        : due === "today" || due === "soon"
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-muted-foreground";
+                    })(),
+                  )}
+                >
                   {tk.dueDate
                     ? format(fromISODate(tk.dueDate), "d MMM", { locale: uk })
                     : ""}

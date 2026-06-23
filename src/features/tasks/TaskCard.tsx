@@ -6,7 +6,8 @@ import { uk } from "date-fns/locale";
 import { CalendarDays, GripVertical } from "lucide-react";
 import type { Project } from "@/types/domain";
 import type { TaskWithLabels } from "@/queries/tasks";
-import { fromISODate } from "@/lib/dates";
+import { fromISODate, todayISO } from "@/lib/dates";
+import { classifyDue } from "@/lib/dueDate";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -63,12 +64,28 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
             <Badge className={priorityClasses[task.priority]}>
               {t(priorityLabelKey[task.priority])}
             </Badge>
-            {task.dueDate && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <CalendarDays className="size-3" />
-                {format(fromISODate(task.dueDate), "d MMM", { locale: uk })}
-              </span>
-            )}
+            {task.dueDate &&
+              (() => {
+                const due =
+                  task.status === "done"
+                    ? "none"
+                    : classifyDue(task.dueDate, todayISO());
+                return (
+                  <span
+                    className={cn(
+                      "flex items-center gap-1 text-xs",
+                      due === "overdue"
+                        ? "font-medium text-destructive"
+                        : due === "today" || due === "soon"
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarDays className="size-3" />
+                    {format(fromISODate(task.dueDate), "d MMM", { locale: uk })}
+                  </span>
+                );
+              })()}
             {assigneeName && (
               <Avatar className="size-5" title={assigneeName}>
                 <AvatarFallback className="text-[10px]">
