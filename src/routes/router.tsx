@@ -30,6 +30,9 @@ const SettingsPage = lazy(() =>
     default: m.SettingsPage,
   })),
 );
+const TeamPage = lazy(() =>
+  import("@/features/team/TeamPage").then((m) => ({ default: m.TeamPage })),
+);
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -45,6 +48,7 @@ export const router = createBrowserRouter([
           { path: "tasks", element: <TasksPage /> },
           { path: "reports", element: <ReportsPage /> },
           { path: "projects", element: <ProjectsPage /> },
+          { path: "team", element: <TeamPage /> },
           { path: "settings", element: <SettingsPage /> },
         ],
       },

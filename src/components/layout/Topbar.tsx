@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,19 +10,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "./ThemeToggle";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 export function Topbar() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
-  const { workspace } = useActiveWorkspace();
 
   const initial = (user?.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <header className="flex h-14 items-center justify-between border-b px-4">
-      <div className="text-sm font-medium text-muted-foreground">
-        {workspace?.name ?? "…"}
-      </div>
+      <WorkspaceSwitcher />
       <div className="flex items-center gap-1">
         <ThemeToggle />
         <DropdownMenu>

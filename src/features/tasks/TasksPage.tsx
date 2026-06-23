@@ -7,6 +7,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useProjects } from "@/queries/projects";
 import { useLabels } from "@/queries/labels";
+import { useMembers } from "@/queries/members";
 import { useTasks, type TaskWithLabels } from "@/queries/tasks";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +28,13 @@ export function TasksPage() {
   const { data: tasks, isLoading } = useTasks(workspaceId);
   const { data: projects } = useProjects(workspaceId);
   const { data: labels } = useLabels(workspaceId);
+  const { data: members } = useMembers(workspaceId);
+
+  const membersById = useMemo(() => {
+    const map = new Map<string, string>();
+    (members ?? []).forEach((m) => map.set(m.userId, m.displayName ?? "—"));
+    return map;
+  }, [members]);
 
   const [params, setParams] = useSearchParams();
   const view = (params.get("view") as View) ?? "board";
@@ -78,6 +86,7 @@ export function TasksPage() {
         <TaskBoard
           tasks={tasks ?? []}
           projectsById={projectsById}
+          membersById={membersById}
           workspaceId={workspaceId}
           onCardClick={openEdit}
         />
@@ -86,6 +95,7 @@ export function TasksPage() {
           tasks={tasks ?? []}
           projects={projects ?? []}
           projectsById={projectsById}
+          membersById={membersById}
           onRowClick={openEdit}
         />
       )}
@@ -96,6 +106,7 @@ export function TasksPage() {
         task={editing}
         projects={projects ?? []}
         labels={labels ?? []}
+        members={members ?? []}
         workspaceId={workspaceId}
         userId={userId}
       />

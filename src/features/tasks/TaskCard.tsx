@@ -9,15 +9,17 @@ import type { TaskWithLabels } from "@/queries/tasks";
 import { fromISODate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { priorityClasses, priorityLabelKey } from "./taskMeta";
 
 interface TaskCardProps {
   task: TaskWithLabels;
   project: Project | undefined;
+  assigneeName?: string;
   onClick: (task: TaskWithLabels) => void;
 }
 
-export function TaskCard({ task, project, onClick }: TaskCardProps) {
+export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps) {
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
@@ -66,6 +68,13 @@ export function TaskCard({ task, project, onClick }: TaskCardProps) {
                 <CalendarDays className="size-3" />
                 {format(fromISODate(task.dueDate), "d MMM", { locale: uk })}
               </span>
+            )}
+            {assigneeName && (
+              <Avatar className="size-5" title={assigneeName}>
+                <AvatarFallback className="text-[10px]">
+                  {assigneeName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             )}
           </div>
 

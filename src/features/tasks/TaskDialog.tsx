@@ -11,6 +11,7 @@ import {
 } from "@/queries/tasks";
 import { useSetTaskLabels } from "@/queries/labels";
 import { useTaskMinutes } from "@/queries/timeEntries";
+import type { Member } from "@/queries/members";
 import { formatHours } from "@/lib/time";
 import {
   Dialog,
@@ -34,6 +35,7 @@ import { LabelPicker } from "./LabelPicker";
 import { PRIORITIES, STATUSES, priorityLabelKey, statusLabelKey } from "./taskMeta";
 
 const NO_PROJECT = "none";
+const NO_ASSIGNEE = "none";
 
 interface TaskDialogProps {
   open: boolean;
@@ -41,6 +43,7 @@ interface TaskDialogProps {
   task: TaskWithLabels | null;
   projects: Project[];
   labels: LabelType[];
+  members: Member[];
   workspaceId: string | null;
   userId: string | null;
   /** Початковий статус для нової задачі. */
@@ -73,6 +76,7 @@ interface TaskFormProps {
   task: TaskWithLabels | null;
   projects: Project[];
   labels: LabelType[];
+  members: Member[];
   workspaceId: string | null;
   userId: string | null;
   initialStatus?: TaskStatus;
@@ -83,6 +87,7 @@ function TaskForm({
   task,
   projects,
   labels,
+  members,
   workspaceId,
   userId,
   initialStatus,
@@ -104,6 +109,7 @@ function TaskForm({
   );
   const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? "medium");
   const [dueDate, setDueDate] = useState(task?.dueDate ?? "");
+  const [assigneeId, setAssigneeId] = useState(task?.assigneeId ?? NO_ASSIGNEE);
   const [labelIds, setLabelIds] = useState<string[]>(
     (task?.labels ?? []).map((l) => l.id),
   );
@@ -122,6 +128,7 @@ function TaskForm({
       status,
       priority,
       dueDate: dueDate || null,
+      assigneeId: assigneeId === NO_ASSIGNEE ? null : assigneeId,
     };
     try {
       const id = isEdit
@@ -230,6 +237,23 @@ function TaskForm({
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t("tasks.assignee")}</Label>
+          <Select value={assigneeId} onValueChange={setAssigneeId}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_ASSIGNEE}>{t("tasks.noAssignee")}</SelectItem>
+              {members.map((m) => (
+                <SelectItem key={m.userId} value={m.userId}>
+                  {m.displayName ?? "—"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

@@ -408,7 +408,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      invite_member: {
+        Args: {
+          member_email: string
+          member_role?: Database["public"]["Enums"]["role"]
+          ws: string
+        }
+        Returns: undefined
+      }
       is_member: { Args: { ws: string }; Returns: boolean }
+      is_owner_or_admin: { Args: { ws: string }; Returns: boolean }
+      shares_workspace: { Args: { other: string }; Returns: boolean }
     }
     Enums: {
       role: "owner" | "admin" | "member"

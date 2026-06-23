@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Workspace } from "@/types/domain";
 
@@ -16,6 +16,24 @@ export function useWorkspaces() {
         name: w.name,
         ownerId: w.owner_id,
       }));
+    },
+  });
+}
+
+export function useCreateWorkspace(userId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string): Promise<Workspace> => {
+      const { data, error } = await supabase
+        .from("workspaces")
+        .insert({ name, owner_id: userId! })
+        .select("id, name, owner_id")
+        .single();
+      if (error) throw error;
+      return { id: data.id, name: data.name, ownerId: data.owner_id };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
     },
   });
 }

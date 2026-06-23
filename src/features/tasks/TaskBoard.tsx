@@ -18,6 +18,7 @@ import { STATUSES } from "./taskMeta";
 interface TaskBoardProps {
   tasks: TaskWithLabels[];
   projectsById: Map<string, Project>;
+  membersById: Map<string, string>;
   workspaceId: string | null;
   onCardClick: (task: TaskWithLabels) => void;
 }
@@ -32,6 +33,7 @@ function midpoint(prev?: number, next?: number): number {
 export function TaskBoard({
   tasks,
   projectsById,
+  membersById,
   workspaceId,
   onCardClick,
 }: TaskBoardProps) {
@@ -109,6 +111,7 @@ export function TaskBoard({
             status={status}
             tasks={byStatus[status]}
             projectsById={projectsById}
+            membersById={membersById}
             onCardClick={onCardClick}
           />
         ))}
@@ -120,6 +123,11 @@ export function TaskBoard({
             project={
               activeTask.projectId
                 ? projectsById.get(activeTask.projectId)
+                : undefined
+            }
+            assigneeName={
+              activeTask.assigneeId
+                ? membersById.get(activeTask.assigneeId)
                 : undefined
             }
             onClick={() => {}}

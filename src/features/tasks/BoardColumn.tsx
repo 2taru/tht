@@ -11,6 +11,7 @@ interface BoardColumnProps {
   status: TaskStatus;
   tasks: TaskWithLabels[];
   projectsById: Map<string, Project>;
+  membersById: Map<string, string>;
   onCardClick: (task: TaskWithLabels) => void;
 }
 
@@ -18,6 +19,7 @@ export function BoardColumn({
   status,
   tasks,
   projectsById,
+  membersById,
   onCardClick,
 }: BoardColumnProps) {
   const { t } = useTranslation();
@@ -45,6 +47,7 @@ export function BoardColumn({
               key={tk.id}
               task={tk}
               project={tk.projectId ? projectsById.get(tk.projectId) : undefined}
+              assigneeName={tk.assigneeId ? membersById.get(tk.assigneeId) : undefined}
               onClick={onCardClick}
             />
           ))}

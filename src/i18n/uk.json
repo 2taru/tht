@@ -18,7 +18,28 @@
     "tasks": "Задачі",
     "reports": "Звіти",
     "projects": "Проєкти",
+    "team": "Команда",
     "settings": "Налаштування"
+  },
+  "workspace": {
+    "create": "Створити простір",
+    "name": "Назва простору"
+  },
+  "team": {
+    "title": "Команда",
+    "invite": "Запросити учасника",
+    "email": "Email",
+    "inviteBtn": "Запросити",
+    "inviteHint": "Користувач має вже мати акаунт у tht.",
+    "invited": "Учасника додано",
+    "userNotFound": "Користувача з таким email не знайдено",
+    "members": "Учасники",
+    "you": "ви",
+    "role": {
+      "owner": "Власник",
+      "admin": "Адмін",
+      "member": "Учасник"
+    }
   },
   "auth": {
     "login": "Увійти",
@@ -65,6 +86,8 @@
     "dueDate": "Дедлайн",
     "statusField": "Статус",
     "priorityField": "Пріоритет",
+    "assignee": "Виконавець",
+    "noAssignee": "Без виконавця",
     "labels": "Теги",
     "addLabels": "Додати теги",
     "newLabel": "Новий тег…",

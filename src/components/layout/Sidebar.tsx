@@ -6,6 +6,7 @@ import {
   FolderKanban,
   ListTodo,
   Settings,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ const items = [
   { to: "/tasks", key: "nav.tasks", icon: ListTodo },
   { to: "/reports", key: "nav.reports", icon: BarChart3 },
   { to: "/projects", key: "nav.projects", icon: FolderKanban },
+  { to: "/team", key: "nav.team", icon: Users },
   { to: "/settings", key: "nav.settings", icon: Settings },
 ] as const;
 

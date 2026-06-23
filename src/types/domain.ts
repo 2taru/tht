@@ -41,6 +41,7 @@ export interface Task {
   priority: TaskPriority;
   dueDate: string | null;
   position: number;
+  assigneeId: string | null;
 }
 
 export interface Label {

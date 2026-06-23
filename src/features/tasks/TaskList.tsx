@@ -28,6 +28,7 @@ interface TaskListProps {
   tasks: TaskWithLabels[];
   projects: Project[];
   projectsById: Map<string, Project>;
+  membersById: Map<string, string>;
   onRowClick: (task: TaskWithLabels) => void;
 }
 
@@ -35,6 +36,7 @@ export function TaskList({
   tasks,
   projects,
   projectsById,
+  membersById,
   onRowClick,
 }: TaskListProps) {
   const { t } = useTranslation();
@@ -130,6 +132,9 @@ export function TaskList({
                 </Badge>
                 <span className="w-24 text-xs text-muted-foreground">
                   {t(statusLabelKey[tk.status])}
+                </span>
+                <span className="w-28 truncate text-xs text-muted-foreground">
+                  {tk.assigneeId ? membersById.get(tk.assigneeId) : ""}
                 </span>
                 <span className="w-16 text-right text-xs text-muted-foreground">
                   {tk.dueDate
