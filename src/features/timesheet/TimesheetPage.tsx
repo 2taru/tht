@@ -1,9 +1,17 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, CopyPlus, Plus } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  CopyPlus,
+  Plus,
+} from "lucide-react";
+import { AnimatePresence, m } from "motion/react";
 import { toast } from "sonner";
 import type { Project, TimeEntry } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -13,9 +21,11 @@ import { useProjects } from "@/queries/projects";
 import { useTasks } from "@/queries/tasks";
 import {
   entriesKey,
+  OVERLAP_VIOLATION,
   useBulkCreateEntries,
   useCreateEntry,
   useEntriesRange,
+  useUpdateEntry,
 } from "@/queries/timeEntries";
 import { findFreeSlot } from "./freeSlot";
 import {
@@ -25,19 +35,32 @@ import {
   weekDaysISO,
   type WeekStart,
 } from "@/lib/dates";
-import { formatHours } from "@/lib/time";
+import { formatHours, intervalsOverlap } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { TimeAxis } from "./TimeAxis";
 import { DayColumn } from "./DayColumn";
 import { EntryDialog, type EntryDraft } from "./EntryDialog";
+import {
+  DEFAULT_PX_PER_MIN,
+  MAX_PX_PER_MIN,
+  MIN_PX_PER_MIN,
+} from "./geometry";
 
 const DEFAULTS = {
   dayStartMinute: 540,
   dayEndMinute: 1140,
-  gridStepMinutes: 10,
+  gridStepMinutes: 30,
   weekStart: 1 as WeekStart,
 };
 
@@ -77,6 +100,7 @@ export function TimesheetPage() {
   const queryKey = entriesKey(workspaceId, userId, fromISO, toISO);
   const mutationCtx = { workspaceId, userId, queryKey };
   const createEntry = useCreateEntry(mutationCtx);
+  const updateEntry = useUpdateEntry(mutationCtx);
   const bulkCreate = useBulkCreateEntries(mutationCtx);
 
   const projectsById = useMemo(() => {
@@ -107,6 +131,94 @@ export function TimesheetPage() {
 
   const [draft, setDraft] = useState<EntryDraft | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(true);
+  const [moveReq, setMoveReq] = useState<{
+    entry: TimeEntry;
+    targetDay: string;
+    newStart: number;
+    newEnd: number;
+  } | null>(null);
+
+  // Геометрія колонок днів — щоб на дропі визначити цільовий день за X-координатою.
+  const columnRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  function dayAtX(clientX: number): string | null {
+    for (const [day, el] of columnRefs.current) {
+      const r = el.getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right) return day;
+    }
+    return null;
+  }
+
+  // Fit-to-height: масштабуємо сітку під доступну висоту, щоб день було видно без скролу.
+  const gridScrollRef = useRef<HTMLDivElement>(null);
+  const [availableHeight, setAvailableHeight] = useState(0);
+  useEffect(() => {
+    const el = gridScrollRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setAvailableHeight(el.clientHeight));
+    ro.observe(el);
+    setAvailableHeight(el.clientHeight);
+    return () => ro.disconnect();
+  }, [isLoading]);
+
+  const gridSpanMinutes = gridEnd - gridStart;
+  const pxPerMin = useMemo(() => {
+    if (!availableHeight || gridSpanMinutes <= 0) return DEFAULT_PX_PER_MIN;
+    const HEADER_PX = 40; // рядок із датами
+    const FOOTER_PX = 29; // підсумок дня
+    const fit = (availableHeight - HEADER_PX - FOOTER_PX) / gridSpanMinutes;
+    return Math.min(MAX_PX_PER_MIN, Math.max(MIN_PX_PER_MIN, fit));
+  }, [availableHeight, gridSpanMinutes]);
+
+  function requestMove(
+    entry: TimeEntry,
+    newStart: number,
+    newEnd: number,
+    clientX: number,
+  ) {
+    const targetDay = dayAtX(clientX) ?? entry.entryDate;
+    // нічого не змінилось — ні час, ні день
+    if (targetDay === entry.entryDate && newStart === entry.startMinute) return;
+    const dayEntries = entriesByDay.get(targetDay) ?? [];
+    const overlaps = dayEntries.some(
+      (e) =>
+        e.id !== entry.id &&
+        intervalsOverlap(newStart, newEnd, e.startMinute, e.endMinute),
+    );
+    if (overlaps) {
+      toast.error(t("errors.overlap"));
+      return;
+    }
+    setMoveReq({ entry, targetDay, newStart, newEnd });
+  }
+
+  async function applyMove(mode: "move" | "duplicate") {
+    if (!moveReq) return;
+    const { entry, targetDay, newStart, newEnd } = moveReq;
+    setMoveReq(null);
+    try {
+      if (mode === "move") {
+        await updateEntry.mutateAsync({
+          id: entry.id,
+          entryDate: targetDay,
+          startMinute: newStart,
+          endMinute: newEnd,
+        });
+      } else {
+        await createEntry.mutateAsync({
+          projectId: entry.projectId,
+          taskId: entry.taskId ?? null,
+          entryDate: targetDay,
+          startMinute: newStart,
+          endMinute: newEnd,
+          description: entry.description ?? null,
+        });
+      }
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      toast.error(code === OVERLAP_VIOLATION ? t("errors.overlap") : t("common.error"));
+    }
+  }
 
   function openCreate(d: EntryDraft) {
     setDraft(d);
@@ -247,11 +359,29 @@ export function TimesheetPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            {t("timesheet.total")}:{" "}
-            <span className="font-semibold text-foreground">
-              {formatHours(totalMinutes)} {t("common.hours")}
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span>
+              {t("timesheet.total")}:{" "}
+              <span className="font-semibold text-foreground">
+                {formatHours(totalMinutes)} {t("common.hours")}
+              </span>
             </span>
+            {perProject.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1 px-2"
+                onClick={() => setShowBreakdown((v) => !v)}
+                aria-expanded={showBreakdown}
+              >
+                {showBreakdown ? t("timesheet.less") : t("timesheet.more")}
+                {showBreakdown ? (
+                  <ChevronUp className="size-3.5" />
+                ) : (
+                  <ChevronDown className="size-3.5" />
+                )}
+              </Button>
+            )}
           </div>
           <Button variant="outline" onClick={handleCopyPeriod}>
             <CopyPlus className="size-4" />
@@ -266,36 +396,50 @@ export function TimesheetPage() {
         </div>
       </div>
 
-      {perProject.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {perProject.map(([pid, minutes]) => {
-            const p = projectsById.get(pid);
-            return (
-              <Badge
-                key={pid}
-                variant="outline"
-                className="gap-1.5"
-                style={{ borderColor: p?.color }}
-              >
-                <span
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: p?.color ?? "#64748b" }}
-                />
-                {p?.name ?? "—"}: {formatHours(minutes)}
-              </Badge>
-            );
-          })}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {showBreakdown && perProject.length > 0 && (
+          <m.div
+            key="breakdown"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              {perProject.map(([pid, minutes]) => {
+                const p = projectsById.get(pid);
+                return (
+                  <Badge
+                    key={pid}
+                    variant="outline"
+                    className="gap-1.5"
+                    style={{ borderColor: p?.color }}
+                  >
+                    <span
+                      className="size-2 rounded-full"
+                      style={{ backgroundColor: p?.color ?? "#64748b" }}
+                    />
+                    {p?.name ?? "—"}: {formatHours(minutes)}
+                  </Badge>
+                );
+              })}
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
+        <div
+          ref={gridScrollRef}
+          className="min-h-0 flex-1 overflow-auto rounded-lg border"
+        >
           <div className="flex">
             <div className="sticky left-0 z-10 bg-background">
               <div className="h-10" />
-              <TimeAxis dayStart={gridStart} dayEnd={gridEnd} />
+              <TimeAxis dayStart={gridStart} dayEnd={gridEnd} pxPerMin={pxPerMin} />
             </div>
             {days.map((d) => {
               const dayEntries = entriesByDay.get(d) ?? [];
@@ -305,7 +449,14 @@ export function TimesheetPage() {
               );
               const isToday = d === todayISO();
               return (
-                <div key={d} className="flex min-w-28 flex-1 flex-col border-l">
+                <div
+                  key={d}
+                  ref={(el) => {
+                    if (el) columnRefs.current.set(d, el);
+                    else columnRefs.current.delete(d);
+                  }}
+                  className="flex min-w-28 flex-1 flex-col border-l"
+                >
                   <div
                     className={`flex h-10 flex-col items-center justify-center text-xs ${isToday ? "bg-accent font-semibold" : ""}`}
                   >
@@ -323,11 +474,13 @@ export function TimesheetPage() {
                       dayEndMinute: gridEnd,
                       gridStepMinutes: cfg.gridStepMinutes,
                     }}
+                    pxPerMin={pxPerMin}
                     workspaceId={workspaceId}
                     userId={userId}
                     queryKey={queryKey}
                     onCreate={openCreate}
                     onEdit={openEdit}
+                    onRequestMove={requestMove}
                   />
                   <div className="border-t py-1 text-center text-xs font-medium">
                     {dayMinutes > 0 ? formatHours(dayMinutes) : "—"}
@@ -358,6 +511,31 @@ export function TimesheetPage() {
         queryKey={queryKey}
         onDuplicate={handleDuplicate}
       />
+
+      <Dialog open={moveReq !== null} onOpenChange={(o) => !o && setMoveReq(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("timesheet.moveTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("timesheet.moveDesc")}
+              {moveReq && moveReq.targetDay !== moveReq.entry.entryDate && (
+                <span className="mt-1 block font-medium text-foreground capitalize">
+                  → {format(fromISODate(moveReq.targetDay), "EEEE, d MMMM", { locale: uk })}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => setMoveReq(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button variant="outline" onClick={() => applyMove("duplicate")}>
+              {t("timesheet.duplicate")}
+            </Button>
+            <Button onClick={() => applyMove("move")}>{t("timesheet.move")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

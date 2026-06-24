@@ -1,13 +1,14 @@
 import { minutesToLabel } from "@/lib/time";
-import { gridHeight, minuteToY } from "./geometry";
+import { DEFAULT_PX_PER_MIN, gridHeight, minuteToY } from "./geometry";
 
 interface TimeAxisProps {
   dayStart: number;
   dayEnd: number;
+  pxPerMin?: number;
 }
 
-export function TimeAxis({ dayStart, dayEnd }: TimeAxisProps) {
-  const height = gridHeight(dayStart, dayEnd);
+export function TimeAxis({ dayStart, dayEnd, pxPerMin = DEFAULT_PX_PER_MIN }: TimeAxisProps) {
+  const height = gridHeight(dayStart, dayEnd, pxPerMin);
   const hours: number[] = [];
   const firstHour = Math.ceil(dayStart / 60) * 60;
   for (let m = firstHour; m <= dayEnd; m += 60) hours.push(m);
@@ -18,7 +19,7 @@ export function TimeAxis({ dayStart, dayEnd }: TimeAxisProps) {
         <span
           key={m}
           className="absolute right-1 -translate-y-1/2 text-xs text-muted-foreground"
-          style={{ top: minuteToY(m, dayStart) }}
+          style={{ top: minuteToY(m, dayStart, pxPerMin) }}
         >
           {minutesToLabel(m)}
         </span>

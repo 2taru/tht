@@ -36,6 +36,11 @@ export function formatHours(minutes: number, locale = "uk"): string {
   }).format(hours);
 }
 
+/** Розбиває тривалість на цілі години й хвилини (135 → { hours: 2, minutes: 15 }). */
+export function splitDuration(minutes: number): { hours: number; minutes: number } {
+  return { hours: Math.floor(minutes / 60), minutes: minutes % 60 };
+}
+
 /** Округлення хвилин до кроку сітки (снап). */
 export function snapToStep(minute: number, step: number): number {
   return Math.round(minute / step) * step;

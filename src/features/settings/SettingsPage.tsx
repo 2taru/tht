@@ -32,7 +32,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const STEPS = [5, 10, 15, 30];
+const STEPS = [15, 30, 60];
 const CURRENCIES = ["UAH", "USD", "EUR", "PLN", "GBP"];
 
 export function SettingsPage() {
