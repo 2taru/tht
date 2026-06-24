@@ -7,7 +7,11 @@ interface TimeAxisProps {
   pxPerMin?: number;
 }
 
-export function TimeAxis({ dayStart, dayEnd, pxPerMin = DEFAULT_PX_PER_MIN }: TimeAxisProps) {
+export function TimeAxis({
+  dayStart,
+  dayEnd,
+  pxPerMin = DEFAULT_PX_PER_MIN,
+}: TimeAxisProps) {
   const height = gridHeight(dayStart, dayEnd, pxPerMin);
   const hours: number[] = [];
   const firstHour = Math.ceil(dayStart / 60) * 60;

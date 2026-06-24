@@ -40,7 +40,9 @@ export function RegisterPage() {
     const { data, error } = await supabase.auth.signUp({
       ...values,
       // Лінк підтвердження має вести на наш домен, а не на дефолтний Site URL.
-      options: { emailRedirectTo: `${window.location.origin}/login?registered=1` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/login?registered=1`,
+      },
     });
     setSubmitting(false);
     if (error) {
@@ -64,40 +66,51 @@ export function RegisterPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {confirmEmail ? (
-            <p className="text-sm text-muted-foreground">{t("auth.confirmEmail")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("auth.confirmEmail")}
+            </p>
           ) : (
             <>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("auth.email")}</Label>
-              <Input id="email" type="email" autoComplete="email" {...register("email")} />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t("auth.password")}</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
-              )}
-            </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
-              {t("auth.register")}
-            </Button>
-          </form>
-          <GoogleButton />
-          <p className="text-center text-sm text-muted-foreground">
-            {t("auth.haveAccount")}{" "}
-            <Link to="/login" className="text-foreground underline">
-              {t("auth.login")}
-            </Link>
-          </p>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t("auth.email")}</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    {...register("email")}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t("auth.password")}</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    {...register("password")}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full" disabled={submitting}>
+                  {t("auth.register")}
+                </Button>
+              </form>
+              <GoogleButton />
+              <p className="text-center text-sm text-muted-foreground">
+                {t("auth.haveAccount")}{" "}
+                <Link to="/login" className="text-foreground underline">
+                  {t("auth.login")}
+                </Link>
+              </p>
             </>
           )}
         </CardContent>

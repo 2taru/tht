@@ -27,13 +27,13 @@ multi-tenant (`workspace_id` всюди) під майбутні команди.
 
 ## Стек
 
-| Шар | Технології |
-| --- | --- |
-| Фронт | Vite, React, TypeScript, Tailwind, shadcn/ui, pnpm |
-| Дані | `@tanstack/react-query`, форми — `react-hook-form` + `zod` |
-| UI/UX | `@dnd-kit`, `date-fns`, `react-i18next`, `recharts`, `motion`, `next-themes` |
-| Бек/БД | Supabase (PostgreSQL + Auth + RLS) |
-| Деплой | фронт — статика на VPS (nginx, SPA-fallback); бек — Supabase хмара |
+| Шар    | Технології                                                                   |
+| ------ | ---------------------------------------------------------------------------- |
+| Фронт  | Vite, React, TypeScript, Tailwind, shadcn/ui, pnpm                           |
+| Дані   | `@tanstack/react-query`, форми — `react-hook-form` + `zod`                   |
+| UI/UX  | `@dnd-kit`, `date-fns`, `react-i18next`, `recharts`, `motion`, `next-themes` |
+| Бек/БД | Supabase (PostgreSQL + Auth + RLS)                                           |
+| Деплой | фронт — статика на VPS (nginx, SPA-fallback); бек — Supabase хмара           |
 
 ## Швидкий старт
 
@@ -62,17 +62,17 @@ pnpm dev             # http://localhost:5173
 
 ## Команди
 
-| Команда | Опис |
-| --- | --- |
-| `pnpm dev` | Dev-сервер Vite (localhost:5173) |
-| `pnpm build` | `tsc -b && vite build` → `dist/` |
-| `pnpm preview` | Локальний прев'ю прод-білда |
-| `pnpm lint` | ESLint |
-| `pnpm format` | Prettier |
-| `pnpm test` | Vitest |
-| `pnpm db:start` / `db:stop` | Підняти / зупинити локальну Supabase |
-| `pnpm db:reset` | Перекотити міграції + seed |
-| `pnpm db:types` | Згенерувати TS-типи БД → `src/types/database.ts` |
+| Команда                     | Опис                                             |
+| --------------------------- | ------------------------------------------------ |
+| `pnpm dev`                  | Dev-сервер Vite (localhost:5173)                 |
+| `pnpm build`                | `tsc -b && vite build` → `dist/`                 |
+| `pnpm preview`              | Локальний прев'ю прод-білда                      |
+| `pnpm lint`                 | ESLint                                           |
+| `pnpm format`               | Prettier                                         |
+| `pnpm test`                 | Vitest                                           |
+| `pnpm db:start` / `db:stop` | Підняти / зупинити локальну Supabase             |
+| `pnpm db:reset`             | Перекотити міграції + seed                       |
+| `pnpm db:types`             | Згенерувати TS-типи БД → `src/types/database.ts` |
 
 ## Структура
 

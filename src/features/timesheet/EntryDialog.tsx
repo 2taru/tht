@@ -13,7 +13,11 @@ import {
   useUpdateEntry,
   type EntryInput,
 } from "@/queries/timeEntries";
-import { formatHours, minutesToTimeValue, timeValueToMinutes } from "@/lib/time";
+import {
+  formatHours,
+  minutesToTimeValue,
+  timeValueToMinutes,
+} from "@/lib/time";
 import {
   Dialog,
   DialogContent,
@@ -219,7 +223,9 @@ function EntryForm({
         <div className="space-y-2">
           <Label>{t("timesheet.task")}</Label>
           <Select
-            value={projectTasks.some((tk) => tk.id === taskId) ? taskId : NO_TASK}
+            value={
+              projectTasks.some((tk) => tk.id === taskId) ? taskId : NO_TASK
+            }
             onValueChange={setTaskId}
             disabled={!projectId}
           >
@@ -285,7 +291,11 @@ function EntryForm({
             <Button variant="destructive" onClick={handleDelete}>
               {t("common.delete")}
             </Button>
-            <Button variant="outline" onClick={handleDuplicate} disabled={!canSave}>
+            <Button
+              variant="outline"
+              onClick={handleDuplicate}
+              disabled={!canSave}
+            >
               <Copy className="size-4" />
               {t("timesheet.duplicate")}
             </Button>

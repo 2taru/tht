@@ -5,11 +5,13 @@ import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
 import type { Project, TimeEntry } from "@/types/domain";
-import { clampMinute, intervalsOverlap, snapToStep, splitDuration } from "@/lib/time";
 import {
-  OVERLAP_VIOLATION,
-  useUpdateEntry,
-} from "@/queries/timeEntries";
+  clampMinute,
+  intervalsOverlap,
+  snapToStep,
+  splitDuration,
+} from "@/lib/time";
+import { OVERLAP_VIOLATION, useUpdateEntry } from "@/queries/timeEntries";
 import {
   DEFAULT_PX_PER_MIN,
   gridHeight,
@@ -83,8 +85,11 @@ export function DayColumn({
   onRequestMove,
 }: DayColumnProps) {
   const { t } = useTranslation();
-  const { dayStartMinute: dayStart, dayEndMinute: dayEnd, gridStepMinutes: step } =
-    settings;
+  const {
+    dayStartMinute: dayStart,
+    dayEndMinute: dayEnd,
+    gridStepMinutes: step,
+  } = settings;
   const ref = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [resize, setResize] = useState<ResizeState | null>(null);
@@ -113,11 +118,16 @@ export function DayColumn({
     const hi = Math.max(a, b);
     return entries.some(
       (e) =>
-        e.id !== ignoreId && intervalsOverlap(lo, hi, e.startMinute, e.endMinute),
+        e.id !== ignoreId &&
+        intervalsOverlap(lo, hi, e.startMinute, e.endMinute),
     );
   }
 
-  function startResize(entry: TimeEntry, edge: ResizeEdge, e: React.PointerEvent) {
+  function startResize(
+    entry: TimeEntry,
+    edge: ResizeEdge,
+    e: React.PointerEvent,
+  ) {
     ref.current?.setPointerCapture(e.pointerId);
     document.body.style.setProperty("cursor", "ns-resize");
     setResize({
@@ -141,7 +151,10 @@ export function DayColumn({
     if (!pending) return;
     e.stopPropagation();
     ref.current?.setPointerCapture(e.pointerId);
-    document.body.style.setProperty("cursor", mode === "move" ? "grabbing" : "ns-resize");
+    document.body.style.setProperty(
+      "cursor",
+      mode === "move" ? "grabbing" : "ns-resize",
+    );
     setPendingDrag({
       mode,
       origLo: pending.lo,
@@ -170,9 +183,15 @@ export function DayColumn({
     }
     if (resize) {
       if (resize.edge === "top") {
-        setResize({ ...resize, startMinute: Math.min(m, resize.endMinute - step) });
+        setResize({
+          ...resize,
+          startMinute: Math.min(m, resize.endMinute - step),
+        });
       } else {
-        setResize({ ...resize, endMinute: Math.max(m, resize.startMinute + step) });
+        setResize({
+          ...resize,
+          endMinute: Math.max(m, resize.startMinute + step),
+        });
       }
       return;
     }
@@ -184,7 +203,10 @@ export function DayColumn({
     document.body.style.removeProperty("cursor");
     const original = entries.find((e) => e.id === r.id);
     if (!original) return;
-    if (r.startMinute === original.startMinute && r.endMinute === original.endMinute) {
+    if (
+      r.startMinute === original.startMinute &&
+      r.endMinute === original.endMinute
+    ) {
       return;
     }
     if (overlapsExisting(r.startMinute, r.endMinute, r.id)) {
@@ -199,7 +221,9 @@ export function DayColumn({
       });
     } catch (err) {
       const code = (err as { code?: string })?.code;
-      toast.error(code === OVERLAP_VIOLATION ? t("errors.overlap") : t("common.error"));
+      toast.error(
+        code === OVERLAP_VIOLATION ? t("errors.overlap") : t("common.error"),
+      );
     }
   }
 
@@ -248,7 +272,11 @@ export function DayColumn({
       toast.error(t("errors.overlap"));
       return;
     }
-    onCreate({ entryDate: dateISO, startMinute: pending.lo, endMinute: pending.hi });
+    onCreate({
+      entryDate: dateISO,
+      startMinute: pending.lo,
+      endMinute: pending.hi,
+    });
     setPending(null);
   }
 
@@ -301,7 +329,11 @@ export function DayColumn({
       {entries.map((entry) => {
         const shown =
           resize && resize.id === entry.id
-            ? { ...entry, startMinute: resize.startMinute, endMinute: resize.endMinute }
+            ? {
+                ...entry,
+                startMinute: resize.startMinute,
+                endMinute: resize.endMinute,
+              }
             : entry;
         return (
           <EntryBlock
@@ -367,13 +399,17 @@ export function DayColumn({
               onPointerDown={(e) => startPendingDrag("top", e)}
               className="absolute inset-x-0 top-0 flex h-2.5 cursor-ns-resize items-center justify-center"
             >
-              {pendingTall && <span className="h-1 w-6 rounded-full bg-primary/80" />}
+              {pendingTall && (
+                <span className="h-1 w-6 rounded-full bg-primary/80" />
+              )}
             </div>
             <div
               onPointerDown={(e) => startPendingDrag("bottom", e)}
               className="absolute inset-x-0 bottom-0 flex h-2.5 cursor-ns-resize items-center justify-center"
             >
-              {pendingTall && <span className="h-1 w-6 rounded-full bg-primary/80" />}
+              {pendingTall && (
+                <span className="h-1 w-6 rounded-full bg-primary/80" />
+              )}
             </div>
           </m.div>
           <m.div

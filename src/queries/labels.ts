@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Label } from "@/types/domain";
 import { tasksKey } from "./tasks";
@@ -46,7 +42,10 @@ export function useLabels(workspaceId: string | null) {
 export function useCreateLabel(workspaceId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; color: string }): Promise<Label> => {
+    mutationFn: async (input: {
+      name: string;
+      color: string;
+    }): Promise<Label> => {
       const { data, error } = await supabase
         .from("labels")
         .insert({

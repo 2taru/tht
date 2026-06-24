@@ -96,7 +96,9 @@ export function ImportDialog({
           />
 
           {parsing && (
-            <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("common.loading")}
+            </p>
           )}
 
           {parsed && (
@@ -117,7 +119,9 @@ export function ImportDialog({
           </Button>
           <Button
             onClick={handleImport}
-            disabled={!parsed || parsed.rows.length === 0 || importEntries.isPending}
+            disabled={
+              !parsed || parsed.rows.length === 0 || importEntries.isPending
+            }
           >
             {importEntries.isPending ? t("common.loading") : t("import.run")}
           </Button>

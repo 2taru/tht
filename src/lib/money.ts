@@ -17,7 +17,10 @@ export function formatMoney(
 }
 
 /** Сума до оплати: години × ставка (null ставка → 0). */
-export function billableAmount(minutes: number, hourlyRate: number | null): number {
+export function billableAmount(
+  minutes: number,
+  hourlyRate: number | null,
+): number {
   if (hourlyRate == null) return 0;
   return (minutes / 60) * hourlyRate;
 }

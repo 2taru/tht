@@ -2,7 +2,12 @@ import { useRef, useState } from "react";
 import { m } from "motion/react";
 import { GripVertical } from "lucide-react";
 import type { Project, TimeEntry } from "@/types/domain";
-import { clampMinute, formatHours, minutesToLabel, snapToStep } from "@/lib/time";
+import {
+  clampMinute,
+  formatHours,
+  minutesToLabel,
+  snapToStep,
+} from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PX_PER_MIN, minuteToY } from "./geometry";
 
@@ -52,7 +57,8 @@ export function EntryBlock({
   const draggedRef = useRef(false); // придушити click після drag/resize у цій же взаємодії
 
   const GAP = 3; // вертикальний проміжок між сусідніми записами
-  const top = minuteToY(entry.startMinute, dayStart, pxPerMin) + offset * pxPerMin;
+  const top =
+    minuteToY(entry.startMinute, dayStart, pxPerMin) + offset * pxPerMin;
   const rawHeight = (entry.endMinute - entry.startMinute) * pxPerMin;
   const heightPx = Math.max(rawHeight - GAP, 6);
   const color = project?.color ?? "#64748b";
@@ -96,9 +102,16 @@ export function EntryBlock({
 
   function handlePointerMove(e: React.PointerEvent) {
     if (movingRef.current) {
-      const deltaMin = snapToStep((e.clientY - startYRef.current) / pxPerMin, step);
+      const deltaMin = snapToStep(
+        (e.clientY - startYRef.current) / pxPerMin,
+        step,
+      );
       setOffset(
-        clampMinute(deltaMin, dayStart - entry.startMinute, dayEnd - entry.endMinute),
+        clampMinute(
+          deltaMin,
+          dayStart - entry.startMinute,
+          dayEnd - entry.endMinute,
+        ),
       );
       setOffsetX(e.clientX - startXRef.current);
       return;

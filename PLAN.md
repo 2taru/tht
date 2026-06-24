@@ -10,6 +10,7 @@
 ---
 
 ## Зміст
+
 1. [Контекст і мета](#1-контекст-і-мета)
 2. [Зафіксовані рішення](#2-зафіксовані-рішення)
 3. [Технологічний стек](#3-технологічний-стек)
@@ -47,6 +48,7 @@
 ролі, призначення задач, спільний облік годин.
 
 **Принципи проєктування:**
+
 - Соло-MVP, але БД і RLS одразу проєктуються multi-tenant (`workspace_id` всюди),
   щоб додати команди без міграції-перебудови.
 - Облік часу — ядро продукту; усе інше обслуговує його.
@@ -56,48 +58,51 @@
 
 ## 2. Зафіксовані рішення
 
-| Питання | Рішення |
-|---|---|
-| **Фронтенд** | Vite + React + TypeScript + shadcn/ui + Tailwind |
-| **Бекенд / БД** | Supabase (PostgreSQL + Auth + Realtime + RLS) |
-| **Менеджер пакетів** | pnpm |
-| **Деплой** | Фронт = статика на власний VPS (nginx); бек = Supabase хмара |
-| **Обсяг MVP** | Соло, але БД одразу з `workspace_id` під майбутні команди |
-| **Облік часу** | Інтервальна сітка, крок **10 хв**; протягування = **один цілісний запис**; клік → деталі/редагування |
-| **Вигляд таймшиту** | Перемикач **Тиждень ⇄ День** |
-| **Межі часу** | Налаштовувані (за замовч. 9:00–19:00), без переходу через північ |
-| **Формат годин** | **Десяткові** (6.5 г) |
-| **Задачі — вигляд** | І Kanban-дошка, і список (перемикач тих самих задач) |
-| **Kanban-колонки** | Фіксовані 3: To-do / In progress / Done |
-| **Поля задачі** | Назва, опис, проєкт, пріоритет (low/medium/high), статус, дедлайн, теги |
-| **Час ↔ задачі** | Опціональний зв'язок |
-| **Проєкти** | Плаский список: назва + колір + архівування |
-| **Звіти** | Підсумки по дню/тижню/місяцю і по проєктах + експорт CSV |
-| **Авторизація** | Email+пароль + Google OAuth |
-| **Мова** | Українська, i18n-ready |
-| **Тема** | Світла + темна |
-| **Гроші/білінг** | Не в MVP; схема розширювана |
-| **Міграція з Excel** | Ні, з чистого аркуша |
-| **Перетин записів** | **Заборонено** (DB exclusion constraint + перевірка в UI) |
-| **Швидкі дії (копія/повтор)** | Пост-MVP, не в MVP |
-| **Dev Supabase** | Локальний через Supabase CLI (Docker) + окремий prod-проєкт |
-| **Мобільний** | Пост-MVP |
+| Питання                       | Рішення                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Фронтенд**                  | Vite + React + TypeScript + shadcn/ui + Tailwind                                                     |
+| **Бекенд / БД**               | Supabase (PostgreSQL + Auth + Realtime + RLS)                                                        |
+| **Менеджер пакетів**          | pnpm                                                                                                 |
+| **Деплой**                    | Фронт = статика на власний VPS (nginx); бек = Supabase хмара                                         |
+| **Обсяг MVP**                 | Соло, але БД одразу з `workspace_id` під майбутні команди                                            |
+| **Облік часу**                | Інтервальна сітка, крок **10 хв**; протягування = **один цілісний запис**; клік → деталі/редагування |
+| **Вигляд таймшиту**           | Перемикач **Тиждень ⇄ День**                                                                         |
+| **Межі часу**                 | Налаштовувані (за замовч. 9:00–19:00), без переходу через північ                                     |
+| **Формат годин**              | **Десяткові** (6.5 г)                                                                                |
+| **Задачі — вигляд**           | І Kanban-дошка, і список (перемикач тих самих задач)                                                 |
+| **Kanban-колонки**            | Фіксовані 3: To-do / In progress / Done                                                              |
+| **Поля задачі**               | Назва, опис, проєкт, пріоритет (low/medium/high), статус, дедлайн, теги                              |
+| **Час ↔ задачі**              | Опціональний зв'язок                                                                                 |
+| **Проєкти**                   | Плаский список: назва + колір + архівування                                                          |
+| **Звіти**                     | Підсумки по дню/тижню/місяцю і по проєктах + експорт CSV                                             |
+| **Авторизація**               | Email+пароль + Google OAuth                                                                          |
+| **Мова**                      | Українська, i18n-ready                                                                               |
+| **Тема**                      | Світла + темна                                                                                       |
+| **Гроші/білінг**              | Не в MVP; схема розширювана                                                                          |
+| **Міграція з Excel**          | Ні, з чистого аркуша                                                                                 |
+| **Перетин записів**           | **Заборонено** (DB exclusion constraint + перевірка в UI)                                            |
+| **Швидкі дії (копія/повтор)** | Пост-MVP, не в MVP                                                                                   |
+| **Dev Supabase**              | Локальний через Supabase CLI (Docker) + окремий prod-проєкт                                          |
+| **Мобільний**                 | Пост-MVP                                                                                             |
 
 ---
 
 ## 3. Технологічний стек
 
 **Ядро**
+
 - `vite`, `react`, `react-dom`, `typescript`
 - `tailwindcss`, `shadcn/ui` (Radix), `lucide-react`
 - `@supabase/supabase-js`
 
 **Дані / стан**
+
 - `@tanstack/react-query` — кеш, запити, мутації, оптимістичні апдейти
 - `zod` — валідація
 - `react-hook-form` + `@hookform/resolvers`
 
 **Навігація / UX**
+
 - `react-router-dom`
 - `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/modifiers` — drag&drop (Kanban + сітка)
 - `date-fns` — дати/час (локаль `uk`)
@@ -105,10 +110,12 @@
 - `react-i18next`, `i18next`, `i18next-browser-languagedetector`
 
 **Звіти**
+
 - `recharts` — графіки
 - Експорт CSV — власна утиліта (Blob); Excel (`xlsx`) — пост-MVP
 
 **Інструменти**
+
 - `eslint`, `prettier`, `vitest` + `@testing-library/react` (юніти утиліт/хуків)
 - `supabase` CLI — локальна БД, міграції, генерація типів
 
@@ -148,17 +155,17 @@
 
 ### Таблиці (огляд)
 
-| Таблиця | Призначення | Ключові поля |
-|---|---|---|
-| `profiles` | Профіль (1:1 з auth.users) | id, display_name, avatar_url |
-| `user_settings` | Особисті налаштування | day_start_minute, day_end_minute, grid_step_minutes, theme, locale, week_start |
-| `workspaces` | Простір (особистий / команда) | id, name, owner_id |
-| `workspace_members` | Членство + ролі | workspace_id, user_id, role |
-| `projects` | Проєкти | workspace_id, name, color, is_archived |
-| `tasks` | Задачі | workspace_id, project_id, title, status, priority, due_date, position |
-| `labels` | Теги (workspace-scoped) | workspace_id, name, color |
-| `task_labels` | Зв'язок задача↔тег | task_id, label_id |
-| `time_entries` | Записи часу (ядро) | workspace_id, user_id, project_id, task_id, entry_date, start_minute, end_minute, description |
+| Таблиця             | Призначення                   | Ключові поля                                                                                  |
+| ------------------- | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `profiles`          | Профіль (1:1 з auth.users)    | id, display_name, avatar_url                                                                  |
+| `user_settings`     | Особисті налаштування         | day_start_minute, day_end_minute, grid_step_minutes, theme, locale, week_start                |
+| `workspaces`        | Простір (особистий / команда) | id, name, owner_id                                                                            |
+| `workspace_members` | Членство + ролі               | workspace_id, user_id, role                                                                   |
+| `projects`          | Проєкти                       | workspace_id, name, color, is_archived                                                        |
+| `tasks`             | Задачі                        | workspace_id, project_id, title, status, priority, due_date, position                         |
+| `labels`            | Теги (workspace-scoped)       | workspace_id, name, color                                                                     |
+| `task_labels`       | Зв'язок задача↔тег            | task_id, label_id                                                                             |
+| `time_entries`      | Записи часу (ядро)            | workspace_id, user_id, project_id, task_id, entry_date, start_minute, end_minute, description |
 
 ### Зв'язки (ER, спрощено)
 
@@ -173,6 +180,7 @@ profiles 1───* time_entries (user_id)
 ```
 
 ### Enum-и (як CHECK або Postgres enum)
+
 - `role`: `owner | admin | member`
 - `task_status`: `todo | in_progress | done`
 - `task_priority`: `low | medium | high`
@@ -412,6 +420,7 @@ create trigger on_auth_user_created
 ```
 
 **Фронт:**
+
 - `AuthProvider` тримає сесію (`supabase.auth.getSession` + `onAuthStateChange`).
 - `ProtectedRoute` редіректить неавторизованих на `/login`.
 - Активний workspace зберігаємо в стані/`localStorage` (у соло — єдиний особистий).
@@ -426,6 +435,7 @@ create trigger on_auth_user_created
 **Типи:** генеруємо з БД — `supabase gen types typescript` → `src/types/database.ts`.
 
 **Конвенція ключів кешу:**
+
 ```
 ['projects', workspaceId]
 ['tasks', workspaceId, { status?, projectId? }]
@@ -436,6 +446,7 @@ create trigger on_auth_user_created
 ```
 
 **Патерни:**
+
 - Запити — у `src/queries/*` як хуки (`useProjects`, `useWeekEntries`, `useTasks`…).
 - Мутації — `useCreateEntry`, `useUpdateEntry`, `useDeleteEntry`, `useMoveTask`…
 - **Оптимістичні апдейти** для drag-операцій (перетягування блоку часу, картки
@@ -448,15 +459,18 @@ create trigger on_auth_user_created
 ## 10. Функціонал і UX-специфікації
 
 ### 10.1. Auth
+
 - `/login`, `/register`, `/reset-password`.
 - Email+пароль + кнопка «Увійти через Google».
 - Після входу — редірект на `/timesheet`.
 
 ### 10.2. Layout
+
 - Бічна навігація: **Таймшит / Задачі / Звіти / Проєкти / Налаштування**.
 - Верх: назва активного workspace, перемикач теми, меню профілю (вихід).
 
 ### 10.3. Таймшит (ядро) ⭐
+
 **Перемикач Тиждень ⇄ День** (за замовч. — останній обраний, fallback Тиждень).
 
 - **Тиждень:** колонки = 7 днів (тиждень з понеділка, `week_start`), вертикальна
@@ -465,6 +479,7 @@ create trigger on_auth_user_created
 - **День:** один день на всю ширину, ширші блоки/описи.
 
 **Створення запису (drag):**
+
 1. Натиснув на порожньому слоті й тягнеш вертикально → прев'ю-блок, що снапиться
    до кроку 10 хв.
 2. Відпустив → діалог: **проєкт** (обов'язково, select із кольорами), **опис**,
@@ -473,6 +488,7 @@ create trigger on_auth_user_created
 3. Збереження → блок фарбується кольором проєкту, показує опис + тривалість (год).
 
 **Редагування:**
+
 - Клік по блоку → попап/діалог з деталями: проєкт, опис, задача, час; кнопки
   «Зберегти», «Видалити».
 - Тягнення країв блоку → зміна `start/end` (снап до 10 хв).
@@ -488,6 +504,7 @@ create trigger on_auth_user_created
 **MVP:** без копіювання/повтору записів (це пост-MVP).
 
 ### 10.4. Задачі
+
 **Перемикач Дошка ⇄ Список** (ті самі дані).
 
 - **Дошка:** 3 колонки (To-do / In progress / Done). Картки drag&drop між
@@ -501,20 +518,24 @@ create trigger on_auth_user_created
   `(сусід_зверху + сусід_знизу)/2`; зрідка — переіндексація колонки.
 
 ### 10.5. Проєкти
+
 - Список (активні/архівні), створення/редагування: назва + колір (палітра +
   hex-інпут), архівування (архівні ховаються зі селектів, але історія лишається).
 
 ### 10.6. Звіти
+
 - Вибір періоду (день/тиждень/місяць або довільний діапазон).
 - Графіки (recharts): години по днях (бар), розподіл по проєктах (донат/бар).
 - Таблиця підсумків: проєкт × години, загальна сума.
 - **Експорт CSV:** колонки `date, project, task, description, hours` за період.
 
 ### 10.7. Налаштування
+
 - Межі робочого дня (`day_start/end_minute`), крок сітки, перший день тижня,
   тема (світла/темна/системна), мова, профіль (ім'я, аватар).
 
 ### 10.8. Стани UI
+
 - Кожен екран: loading (skeleton), empty (підказка + CTA), error (тост/банер).
 - Тости — `sonner`. Підтвердження видалення — `alert-dialog`.
 
@@ -535,6 +556,7 @@ create trigger on_auth_user_created
 /settings              налаштування
 *                      404
 ```
+
 Усі, крім публічних, — під `ProtectedRoute`.
 
 ---
@@ -626,12 +648,13 @@ tht/
 ## 15. Dev-воркфлоу і середовища
 
 **Локальна розробка — Supabase CLI (Docker):**
+
 - `supabase init` (один раз) → `supabase/`.
 - `supabase start` → піднімає локальний Postgres+Auth+Studio у Docker.
 - Міграції в `supabase/migrations/`; `supabase db reset` застосовує їх + `seed.sql`.
 - `supabase gen types typescript --local > src/types/database.ts`.
 - `.env.local` вказує на локальний URL/anon-key (їх друкує `supabase start`).
-- *Вимога:* встановлений Docker Desktop.
+- _Вимога:_ встановлений Docker Desktop.
 
 **Середовища:**
 | Середовище | Supabase | Призначення |
@@ -644,6 +667,7 @@ tht/
 - **Ніколи** не комітити справжні ключі; `.env*` у `.gitignore`, є `.env.example`.
 
 **Скрипти (`package.json`):**
+
 ```
 dev        vite
 build      tsc -b && vite build
@@ -660,6 +684,7 @@ db:types   supabase gen types typescript --local > src/types/database.ts
 ## 16. Деплой
 
 **Фронтенд (як ваші теперішні React-проєкти):**
+
 1. `pnpm build` → `dist/` (зі `VITE_SUPABASE_URL/ANON_KEY` prod-проєкту).
 2. Залити `dist/` на VPS; nginx роздає статику зі **SPA-fallback** на `index.html`.
 3. Домен/піддомен + SSL (Let's Encrypt). Приклад nginx:
@@ -693,6 +718,7 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 ## 18. Дорожня карта
 
 ### Phase 0 — Каркас ✅ (завершено 2026-06-23)
+
 - [x] pnpm + Vite + React + TS; eslint/prettier; аліас `@/`
 - [x] Tailwind + shadcn/ui; теми (світла/темна) через next-themes
 - [x] `supabase init`, локальний стек у Docker, `.env.local`
@@ -701,6 +727,7 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 - [x] QueryClient, supabase-клієнт, i18n (uk), роутер, AppShell+Sidebar
 
 > Примітки з реалізації:
+>
 > - RLS-міграція додатково робить `grant ... to authenticated` (table-level привілеї
 >   потрібні поверх політик, інакше PostgREST дає `42501`).
 > - Seed вставляє тестового користувача (`test@tht.local` / `password123`) з
@@ -708,12 +735,14 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 > - TS 6 більше не приймає `baseUrl` — аліас `@/` живе лише через `paths`.
 
 ### Phase 1 — Проєкти ✅ (завершено 2026-06-23)
+
 - [x] `useProjects` + CRUD (`queries/projects.ts`); ColorPicker (пресети + hex); архівування
 - [x] Сторінка: таби активні/архівні, діалог створення/редагування, видалення з
       підтвердженням; FK-помилка (23503) при видаленні проєкту із записами → тост
       «заархівуйте». Перевірено наскрізь по REST під RLS.
 
 ### Phase 2 — Таймшит (ядро) ⭐ — переважно завершено (2026-06-23)
+
 - [x] `lib/time.ts` (хвилини↔год, снап, формат десяткових, HH:MM) + тести; `lib/dates.ts`
 - [x] Сітка Тиждень/День (`?view=&date=`), межі з налаштувань (авто-розширення під
       записи поза робочим днем), навігація ‹/›/Сьогодні
@@ -726,6 +755,7 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 - [ ] Опц. зв'язок запису з задачею (task picker) — додамо у Phase 3, коли є задачі
 
 ### Phase 3 — Задачі ✅ (завершено 2026-06-23)
+
 - [x] CRUD задач (`queries/tasks.ts`); теги (`queries/labels.ts`) + task_labels
       (set-замість-merge); інлайн-створення тегів у `LabelPicker`
 - [x] Дошка (3 колонки, dnd-kit: drag-ручка, `closestCorners`, status+дробова position,
@@ -737,12 +767,14 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 > — хвіст Phase 2; зробимо разом із поліровкою.
 
 ### Phase 4 — Звіти ✅ (завершено 2026-06-23)
+
 - [x] Фільтри періоду (від/до + пресети «цей тиждень/місяць», стан у URL `?from&to`)
 - [x] Графіки (recharts): години по днях (бар), розподіл по проєктах (донат)
 - [x] Таблиця підсумків проєкт × години + загальна сума
 - [x] Експорт CSV (`lib/csv.ts`, BOM для Excel): date, project, task, description, hours
 
 ### Phase 5 — Поліш і деплой ✅ (завершено 2026-06-23)
+
 - [x] Налаштування (межі дня, крок, перший день тижня, тема, профіль) —
       `features/settings`, `queries/settings.ts` (update), `queries/profile.ts`
 - [x] Loading (skeleton) / empty / error стани; тости (`sonner`); підтвердження видалення
@@ -755,6 +787,7 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 > Google OAuth redirect-URL, заливка `dist/` на VPS + SSL — кроки в `deploy/README.md`.
 
 ### Надійність / auth (2026-06-23)
+
 - [x] Скидання пароля: `/reset-password` (запит листа) + `/update-password`
       (новий пароль із recovery-сесії); «Забули пароль?» на логіні. Перевірено: лист
       доходить у Mailpit.
@@ -764,11 +797,13 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
       рендера/завантаження lazy-чанків.
 
 ### UX / анімації (2026-06-23)
+
 - [x] Точковий polish через `motion` (`LazyMotion`+`domAnimation`, `m`-компоненти,
       `reducedMotion="user"`): fade-перехід між сторінками, поява карток канбану й
       блоків таймшита, поп бейджа дзвіночка. Бандл +~43kB gzip (свідомо).
 
 ### Пост-MVP (беклог)
+
 - [x] **Команди** (2026-06-23): кілька workspace + перемикач, створення простору,
       запрошення наявних користувачів (rpc `invite_member`), ролі (owner/admin/member),
       assignee на задачах, RLS під команди (члени бачать чужі записи, пишуть лише свої;
@@ -801,6 +836,7 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
 ---
 
 ## 19. Відкриті питання
+
 - Фінальний домен/піддомен для прод-деплою (узгодити доступ до VPS і Node не треба,
   лише статика+nginx).
 - Чи виносити Kanban-колонки в налаштовувані — поки фіксовані 3.

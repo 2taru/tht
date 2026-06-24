@@ -36,7 +36,9 @@ export function UpdatePasswordPage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
-    const { error } = await supabase.auth.updateUser({ password: values.password });
+    const { error } = await supabase.auth.updateUser({
+      password: values.password,
+    });
     setSubmitting(false);
     if (error) {
       toast.error(t("auth.resetExpired"));
@@ -64,7 +66,9 @@ export function UpdatePasswordPage() {
                 {...register("password")}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>

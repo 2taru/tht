@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { Label as LabelType, Project, TaskPriority, TaskStatus } from "@/types/domain";
+import type {
+  Label as LabelType,
+  Project,
+  TaskPriority,
+  TaskStatus,
+} from "@/types/domain";
 import {
   useCreateTask,
   useDeleteTask,
@@ -32,7 +37,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LabelPicker } from "./LabelPicker";
-import { PRIORITIES, STATUSES, priorityLabelKey, statusLabelKey } from "./taskMeta";
+import {
+  PRIORITIES,
+  STATUSES,
+  priorityLabelKey,
+  statusLabelKey,
+} from "./taskMeta";
 
 const NO_PROJECT = "none";
 const NO_ASSIGNEE = "none";
@@ -110,7 +120,9 @@ function TaskForm({
   const [status, setStatus] = useState<TaskStatus>(
     task?.status ?? initialStatus ?? "todo",
   );
-  const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? "medium");
+  const [priority, setPriority] = useState<TaskPriority>(
+    task?.priority ?? "medium",
+  );
   const [dueDate, setDueDate] = useState(task?.dueDate ?? "");
   const [assigneeId, setAssigneeId] = useState(task?.assigneeId ?? NO_ASSIGNEE);
   const [labelIds, setLabelIds] = useState<string[]>(
@@ -181,7 +193,9 @@ function TaskForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_PROJECT}>{t("tasks.noProject")}</SelectItem>
+                <SelectItem value={NO_PROJECT}>
+                  {t("tasks.noProject")}
+                </SelectItem>
                 {activeProjects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     <span className="flex items-center gap-2">
@@ -209,7 +223,10 @@ function TaskForm({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>{t("tasks.statusField")}</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
+            <Select
+              value={status}
+              onValueChange={(v) => setStatus(v as TaskStatus)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -249,7 +266,9 @@ function TaskForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NO_ASSIGNEE}>{t("tasks.noAssignee")}</SelectItem>
+              <SelectItem value={NO_ASSIGNEE}>
+                {t("tasks.noAssignee")}
+              </SelectItem>
               {members.map((m) => (
                 <SelectItem key={m.userId} value={m.userId}>
                   {m.displayName ?? "—"}
@@ -281,7 +300,8 @@ function TaskForm({
 
         {isEdit && loggedMinutes !== undefined && loggedMinutes > 0 && (
           <p className="text-sm text-muted-foreground">
-            {t("tasks.logged")}: {formatHours(loggedMinutes)} {t("common.hours")}
+            {t("tasks.logged")}: {formatHours(loggedMinutes)}{" "}
+            {t("common.hours")}
           </p>
         )}
       </div>

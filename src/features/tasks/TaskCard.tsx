@@ -21,10 +21,21 @@ interface TaskCardProps {
   onClick: (task: TaskWithLabels) => void;
 }
 
-export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps) {
+export function TaskCard({
+  task,
+  project,
+  assigneeName,
+  onClick,
+}: TaskCardProps) {
   const { t } = useTranslation();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
 
   return (
     <m.div
@@ -56,7 +67,11 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
 
           <div className="flex flex-wrap items-center gap-1.5">
             {project && (
-              <Badge variant="outline" className="gap-1" style={{ borderColor: project.color }}>
+              <Badge
+                variant="outline"
+                className="gap-1"
+                style={{ borderColor: project.color }}
+              >
                 <span
                   className="size-2 rounded-full"
                   style={{ backgroundColor: project.color }}

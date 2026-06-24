@@ -14,10 +14,7 @@ function escapeCell(value: string | number): string {
 }
 
 /** Будує CSV-рядок із заголовків і рядків. */
-export function toCsv(
-  headers: string[],
-  rows: (string | number)[][],
-): string {
+export function toCsv(headers: string[], rows: (string | number)[][]): string {
   const lines = [headers, ...rows].map((row) => row.map(escapeCell).join(","));
   return lines.join("\n");
 }

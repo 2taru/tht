@@ -1,4 +1,8 @@
-import { useRouteError, useNavigate, isRouteErrorResponse } from "react-router-dom";
+import {
+  useRouteError,
+  useNavigate,
+  isRouteErrorResponse,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +26,9 @@ export function RouteError() {
         <Button variant="outline" onClick={() => navigate(0)}>
           {t("errors.reload")}
         </Button>
-        <Button onClick={() => navigate("/timesheet")}>{t("nav.timesheet")}</Button>
+        <Button onClick={() => navigate("/timesheet")}>
+          {t("nav.timesheet")}
+        </Button>
       </div>
     </div>
   );

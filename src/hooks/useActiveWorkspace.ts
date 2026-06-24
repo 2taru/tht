@@ -9,8 +9,8 @@ const STORAGE_KEY = "tht.activeWorkspaceId";
  */
 export function useActiveWorkspace() {
   const { data: workspaces, isLoading } = useWorkspaces();
-  const [selectedId, setSelectedId] = useState<string | null>(
-    () => localStorage.getItem(STORAGE_KEY),
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    localStorage.getItem(STORAGE_KEY),
   );
 
   const list = workspaces ?? [];

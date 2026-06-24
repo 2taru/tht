@@ -63,9 +63,16 @@ export function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.email")}</Label>
-              <Input id="email" type="email" autoComplete="email" {...register("email")} />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                {...register("email")}
+              />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
@@ -77,7 +84,9 @@ export function LoginPage() {
                 {...register("password")}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
@@ -86,7 +95,10 @@ export function LoginPage() {
           </form>
           <GoogleButton />
           <p className="text-center text-sm">
-            <Link to="/reset-password" className="text-muted-foreground underline">
+            <Link
+              to="/reset-password"
+              className="text-muted-foreground underline"
+            >
               {t("auth.forgotPassword")}
             </Link>
           </p>

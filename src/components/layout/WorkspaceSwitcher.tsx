@@ -55,10 +55,15 @@ export function WorkspaceSwitcher() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
           {workspaces.map((ws) => (
-            <DropdownMenuItem key={ws.id} onClick={() => selectWorkspace(ws.id)}>
+            <DropdownMenuItem
+              key={ws.id}
+              onClick={() => selectWorkspace(ws.id)}
+            >
               <Check
                 className={
-                  ws.id === workspace?.id ? "size-4 opacity-100" : "size-4 opacity-0"
+                  ws.id === workspace?.id
+                    ? "size-4 opacity-100"
+                    : "size-4 opacity-0"
                 }
               />
               <span className="truncate">{ws.name}</span>

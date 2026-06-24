@@ -17,6 +17,7 @@ export const priorityLabelKey: Record<TaskPriority, string> = {
 
 export const priorityClasses: Record<TaskPriority, string> = {
   low: "border-transparent bg-muted text-muted-foreground",
-  medium: "border-transparent bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  medium:
+    "border-transparent bg-amber-500/15 text-amber-600 dark:text-amber-400",
   high: "border-transparent bg-destructive/15 text-destructive",
 };

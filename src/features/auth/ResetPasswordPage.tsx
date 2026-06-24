@@ -48,14 +48,23 @@ export function ResetPasswordPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {sent ? (
-            <p className="text-sm text-muted-foreground">{t("auth.resetSent")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("auth.resetSent")}
+            </p>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">{t("auth.email")}</Label>
-                <Input id="email" type="email" autoComplete="email" {...register("email")} />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  {...register("email")}
+                />
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
               <Button type="submit" className="w-full" disabled={submitting}>

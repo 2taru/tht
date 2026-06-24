@@ -68,7 +68,12 @@ export function NotificationsBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label={t("notifications.title")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={t("notifications.title")}
+        >
           <Bell className="size-5" />
           {count > 0 && (
             <m.span

@@ -1,5 +1,8 @@
 import { useDroppable } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useTranslation } from "react-i18next";
 import type { Project, TaskStatus } from "@/types/domain";
 import type { TaskWithLabels } from "@/queries/tasks";
@@ -46,8 +49,12 @@ export function BoardColumn({
             <TaskCard
               key={tk.id}
               task={tk}
-              project={tk.projectId ? projectsById.get(tk.projectId) : undefined}
-              assigneeName={tk.assigneeId ? membersById.get(tk.assigneeId) : undefined}
+              project={
+                tk.projectId ? projectsById.get(tk.projectId) : undefined
+              }
+              assigneeName={
+                tk.assigneeId ? membersById.get(tk.assigneeId) : undefined
+              }
               onClick={onCardClick}
             />
           ))}

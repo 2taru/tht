@@ -51,11 +51,7 @@ import {
 import { TimeAxis } from "./TimeAxis";
 import { DayColumn } from "./DayColumn";
 import { EntryDialog, type EntryDraft } from "./EntryDialog";
-import {
-  DEFAULT_PX_PER_MIN,
-  MAX_PX_PER_MIN,
-  MIN_PX_PER_MIN,
-} from "./geometry";
+import { DEFAULT_PX_PER_MIN, MAX_PX_PER_MIN, MIN_PX_PER_MIN } from "./geometry";
 
 const DEFAULTS = {
   dayStartMinute: 540,
@@ -216,7 +212,9 @@ export function TimesheetPage() {
       }
     } catch (err) {
       const code = (err as { code?: string })?.code;
-      toast.error(code === OVERLAP_VIOLATION ? t("errors.overlap") : t("common.error"));
+      toast.error(
+        code === OVERLAP_VIOLATION ? t("errors.overlap") : t("common.error"),
+      );
     }
   }
 
@@ -235,7 +233,11 @@ export function TimesheetPage() {
       toast.error(t("timesheet.noFreeSlot"));
       return;
     }
-    openCreate({ entryDate: targetDay, startMinute: slot, endMinute: slot + 30 });
+    openCreate({
+      entryDate: targetDay,
+      startMinute: slot,
+      endMinute: slot + 30,
+    });
   }
 
   function openEdit(entry: TimeEntry) {
@@ -282,7 +284,10 @@ export function TimesheetPage() {
   const perProject = useMemo(() => {
     const acc = new Map<string, number>();
     (entries ?? []).forEach((e) => {
-      acc.set(e.projectId, (acc.get(e.projectId) ?? 0) + (e.endMinute - e.startMinute));
+      acc.set(
+        e.projectId,
+        (acc.get(e.projectId) ?? 0) + (e.endMinute - e.startMinute),
+      );
     });
     return [...acc.entries()].sort((a, b) => b[1] - a[1]);
   }, [entries]);
@@ -459,7 +464,11 @@ export function TimesheetPage() {
           <div className="flex">
             <div className="sticky left-0 z-10 bg-background">
               <div className="h-10" />
-              <TimeAxis dayStart={gridStart} dayEnd={gridEnd} pxPerMin={pxPerMin} />
+              <TimeAxis
+                dayStart={gridStart}
+                dayEnd={gridEnd}
+                pxPerMin={pxPerMin}
+              />
             </div>
             {days.map((d) => {
               const dayEntries = entriesByDay.get(d) ?? [];
@@ -532,7 +541,10 @@ export function TimesheetPage() {
         onDuplicate={handleDuplicate}
       />
 
-      <Dialog open={moveReq !== null} onOpenChange={(o) => !o && setMoveReq(null)}>
+      <Dialog
+        open={moveReq !== null}
+        onOpenChange={(o) => !o && setMoveReq(null)}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>{t("timesheet.moveTitle")}</DialogTitle>
@@ -540,7 +552,10 @@ export function TimesheetPage() {
               {t("timesheet.moveDesc")}
               {moveReq && moveReq.targetDay !== moveReq.entry.entryDate && (
                 <span className="mt-1 block font-medium text-foreground capitalize">
-                  → {format(fromISODate(moveReq.targetDay), "EEEE, d MMMM", { locale: uk })}
+                  →{" "}
+                  {format(fromISODate(moveReq.targetDay), "EEEE, d MMMM", {
+                    locale: uk,
+                  })}
                 </span>
               )}
             </DialogDescription>
@@ -552,7 +567,9 @@ export function TimesheetPage() {
             <Button variant="outline" onClick={() => applyMove("duplicate")}>
               {t("timesheet.duplicate")}
             </Button>
-            <Button onClick={() => applyMove("move")}>{t("timesheet.move")}</Button>
+            <Button onClick={() => applyMove("move")}>
+              {t("timesheet.move")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

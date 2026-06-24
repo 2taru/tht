@@ -24,7 +24,11 @@ import {
   statusLabelKey,
 } from "./taskMeta";
 
-const PRIORITY_ORDER: Record<TaskPriority, number> = { high: 0, medium: 1, low: 2 };
+const PRIORITY_ORDER: Record<TaskPriority, number> = {
+  high: 0,
+  medium: 1,
+  low: 2,
+};
 type SortKey = "priority" | "dueDate" | "title";
 
 interface TaskListProps {
@@ -72,7 +76,10 @@ export function TaskList({
           value={statusF}
           onChange={(v) => setStatusF(v as TaskStatus | "all")}
           allLabel={t("tasks.allStatuses")}
-          options={STATUSES.map((s) => ({ value: s, label: t(statusLabelKey[s]) }))}
+          options={STATUSES.map((s) => ({
+            value: s,
+            label: t(statusLabelKey[s]),
+          }))}
         />
         <FilterSelect
           value={priorityF}
@@ -95,7 +102,9 @@ export function TaskList({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="priority">{t("tasks.sortPriority")}</SelectItem>
+              <SelectItem value="priority">
+                {t("tasks.sortPriority")}
+              </SelectItem>
               <SelectItem value="dueDate">{t("tasks.sortDue")}</SelectItem>
               <SelectItem value="title">{t("tasks.sortTitle")}</SelectItem>
             </SelectContent>
@@ -108,7 +117,9 @@ export function TaskList({
       ) : (
         <div className="divide-y rounded-lg border">
           {rows.map((tk) => {
-            const project = tk.projectId ? projectsById.get(tk.projectId) : undefined;
+            const project = tk.projectId
+              ? projectsById.get(tk.projectId)
+              : undefined;
             return (
               <button
                 key={tk.id}
@@ -120,7 +131,11 @@ export function TaskList({
                   {tk.title}
                 </span>
                 {project && (
-                  <Badge variant="outline" className="gap-1" style={{ borderColor: project.color }}>
+                  <Badge
+                    variant="outline"
+                    className="gap-1"
+                    style={{ borderColor: project.color }}
+                  >
                     <span
                       className="size-2 rounded-full"
                       style={{ backgroundColor: project.color }}
@@ -174,7 +189,12 @@ interface FilterSelectProps {
   options: { value: string; label: string }[];
 }
 
-function FilterSelect({ value, onChange, allLabel, options }: FilterSelectProps) {
+function FilterSelect({
+  value,
+  onChange,
+  allLabel,
+  options,
+}: FilterSelectProps) {
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-40">

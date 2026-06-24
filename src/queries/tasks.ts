@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Label, Task, TaskPriority, TaskStatus } from "@/types/domain";
 
@@ -75,7 +71,10 @@ export interface TaskInput {
   assigneeId: string | null;
 }
 
-export function useCreateTask(workspaceId: string | null, userId: string | null) {
+export function useCreateTask(
+  workspaceId: string | null,
+  userId: string | null,
+) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: TaskInput): Promise<string> => {

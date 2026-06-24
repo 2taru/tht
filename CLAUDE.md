@@ -4,11 +4,13 @@
 **`PLAN.md`** — це джерело істини по архітектурі, схемі БД, UX і дорожній карті.
 
 ## Що це за проєкт
+
 `tht` (Track Hours & Tasks) — веб-трекер часу + менеджер задач під особистий
 воркфлоу, з прицілом вирости в командний інструмент. Соло-MVP, але БД/RLS одразу
 multi-tenant (`workspace_id` всюди). Мова продукту — українська (i18n-ready).
 
 ## Поточний стан
+
 **MVP завершено (Phase 0–5).** Каркас, БД, auth, layout, проєкти, таймшит (сітка
 тиждень/день, drag-створення + drag-resize, task-picker, перетин), задачі (Kanban +
 список + теги), звіти (графіки + CSV), налаштування (межі дня/крок/тиждень/тема/
@@ -70,6 +72,7 @@ Kanban-колонки (клієнтів свідомо пропустили). О
 `localhost:5173` (IPv6 — звертайся `localhost`, не `127.0.0.1`).
 
 ## Стек
+
 - **Фронт:** Vite + React + TypeScript + Tailwind + shadcn/ui, pnpm
 - **Бек/БД:** Supabase (PostgreSQL + Auth + RLS); власного сервера немає —
   React ходить у Supabase напряму через `supabase-js`
@@ -78,6 +81,7 @@ Kanban-колонки (клієнтів свідомо пропустили). О
 - **Деплой:** фронт — статика на VPS (nginx, SPA-fallback); бек — Supabase хмара
 
 ## Команди
+
 ```
 pnpm dev            # vite (localhost:5173)
 pnpm build          # tsc -b && vite build
@@ -89,17 +93,20 @@ pnpm db:stop        # supabase stop
 pnpm db:reset       # supabase db reset (міграції + seed)
 pnpm db:types       # gen types → src/types/database.ts
 ```
+
 Supabase CLI підключено як dev-залежність (`pnpm exec supabase …`).
 Локальна БД — через Supabase CLI у Docker (потрібен Docker Desktop). Окремий
 хмарний prod-проєкт. Деталі — `PLAN.md` розділ 15.
 
 ## Структура (цільова)
+
 `src/features/*` — фічі (auth, timesheet, tasks, projects, reports, settings).
 `src/components/ui` — shadcn. `src/queries/*` — увесь доступ до Supabase.
 `src/lib/` — `supabase.ts`, `time.ts`, `utils.ts`. `supabase/migrations/` — SQL.
 Повне дерево — `PLAN.md` розділ 13.
 
 ## Правила, яких треба триматися
+
 - **Дані — лише через `src/queries/*`** (react-query). Компоненти не звертаються до
   `supabase` напряму.
 - **Час = хвилини від півночі (int)** — джерело істини. Уся арифметика часу через
@@ -127,6 +134,7 @@ Supabase CLI підключено як dev-залежність (`pnpm exec supa
   сторінками). Робочі поверхні (таймшит/задачі) — full-bleed `flex h-full flex-col gap-4`.
 
 ## Відомі нюанси / QA
+
 - **Харднінг RLS** (міграція `0009`): `is_member` отримав `set search_path = public`
   (був єдиним security-definer без нього); `invite_member` тепер забороняє роль
   `owner` (бо SECURITY DEFINER обходить RLS і міг обійти захист owner-рядка з `0007`).
@@ -154,6 +162,7 @@ Supabase CLI підключено як dev-залежність (`pnpm exec supa
   `docker restart supabase_auth_tht supabase_kong_tht` і зачекати `/auth/v1/health`=200.
 
 ## Гайдрейли
+
 - Не комітити секрети: `.env*` у `.gitignore`, є `.env.example`. Ключі Supabase —
   через `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 - Перед зміною БД-схеми/RLS перечитай `PLAN.md` розділи 5–8.

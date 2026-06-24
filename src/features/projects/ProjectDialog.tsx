@@ -27,9 +27,7 @@ const schema = z.object({
   name: z.string().trim().min(1),
   color: z.string().refine(isValidHex),
   // Порожньо = без ставки; інакше невідʼємне число.
-  rate: z
-    .string()
-    .refine((v) => v.trim() === "" || Number(v) >= 0, "rate"),
+  rate: z.string().refine((v) => v.trim() === "" || Number(v) >= 0, "rate"),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -104,7 +102,9 @@ export function ProjectDialog({
             <Label htmlFor="project-name">{t("projects.name")}</Label>
             <Input id="project-name" autoFocus {...register("name")} />
             {errors.name && (
-              <p className="text-sm text-destructive">{t("projects.nameRequired")}</p>
+              <p className="text-sm text-destructive">
+                {t("projects.nameRequired")}
+              </p>
             )}
           </div>
           <div className="space-y-2">
@@ -117,7 +117,9 @@ export function ProjectDialog({
               )}
             />
             {errors.color && (
-              <p className="text-sm text-destructive">{t("projects.colorInvalid")}</p>
+              <p className="text-sm text-destructive">
+                {t("projects.colorInvalid")}
+              </p>
             )}
           </div>
           <div className="space-y-2">
@@ -131,7 +133,9 @@ export function ProjectDialog({
               {...register("rate")}
             />
             {errors.rate && (
-              <p className="text-sm text-destructive">{t("projects.rateInvalid")}</p>
+              <p className="text-sm text-destructive">
+                {t("projects.rateInvalid")}
+              </p>
             )}
           </div>
           <DialogFooter>

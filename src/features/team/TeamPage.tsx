@@ -13,10 +13,7 @@ import {
   useRemoveMember,
   useUpdateMemberRole,
 } from "@/queries/members";
-import {
-  useDeleteWorkspace,
-  useRenameWorkspace,
-} from "@/queries/workspaces";
+import { useDeleteWorkspace, useRenameWorkspace } from "@/queries/workspaces";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,12 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ROLES: Role[] = ["member", "admin", "owner"];
 
@@ -119,7 +111,9 @@ export function TeamPage() {
     } catch (err) {
       const code = (err as { code?: string })?.code;
       toast.error(
-        code === INVITE_USER_NOT_FOUND ? t("team.userNotFound") : t("common.error"),
+        code === INVITE_USER_NOT_FOUND
+          ? t("team.userNotFound")
+          : t("common.error"),
       );
     }
   }
@@ -151,12 +145,17 @@ export function TeamPage() {
                   }}
                 />
               </div>
-              <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as Role)}>
+              <Select
+                value={inviteRole}
+                onValueChange={(v) => setInviteRole(v as Role)}
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="member">{t("team.role.member")}</SelectItem>
+                  <SelectItem value="member">
+                    {t("team.role.member")}
+                  </SelectItem>
                   <SelectItem value="admin">{t("team.role.admin")}</SelectItem>
                 </SelectContent>
               </Select>
@@ -165,7 +164,9 @@ export function TeamPage() {
                 {t("team.inviteBtn")}
               </Button>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">{t("team.inviteHint")}</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t("team.inviteHint")}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -185,14 +186,21 @@ export function TeamPage() {
               const isSelf = m.userId === user?.id;
               const name = m.displayName ?? "—";
               return (
-                <div key={m.id} className="flex items-center gap-3 rounded-lg border p-3">
+                <div
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-lg border p-3"
+                >
                   <Avatar className="size-8">
-                    <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <span className="min-w-0 flex-1 truncate">
                     {name}
                     {isSelf && (
-                      <span className="ml-1 text-muted-foreground">({t("team.you")})</span>
+                      <span className="ml-1 text-muted-foreground">
+                        ({t("team.you")})
+                      </span>
                     )}
                   </span>
                   {canManage && !isOwner ? (
@@ -217,7 +225,9 @@ export function TeamPage() {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Badge variant="secondary">{t(`team.role.${m.role}`)}</Badge>
+                    <Badge variant="secondary">
+                      {t(`team.role.${m.role}`)}
+                    </Badge>
                   )}
                   {canManage && !isOwner && !isSelf && (
                     <Button
@@ -289,7 +299,9 @@ export function TeamPage() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>{t("team.deleteWorkspace")}</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      {t("team.deleteWorkspace")}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
                       {t("team.deleteConfirm", { name: workspace?.name ?? "" })}
                     </AlertDialogDescription>

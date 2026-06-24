@@ -41,12 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function defaultRange() {
   const now = new Date();
@@ -114,7 +109,9 @@ export function ReportsPage() {
 
   const byDay = useMemo(() => {
     const map = new Map<string, number>();
-    (rows ?? []).forEach((r) => map.set(r.date, (map.get(r.date) ?? 0) + r.minutes));
+    (rows ?? []).forEach((r) =>
+      map.set(r.date, (map.get(r.date) ?? 0) + r.minutes),
+    );
     return [...map.entries()]
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, minutes]) => ({
@@ -143,7 +140,9 @@ export function ReportsPage() {
 
   const byMember = useMemo(() => {
     const map = new Map<string, number>();
-    (rows ?? []).forEach((r) => map.set(r.userId, (map.get(r.userId) ?? 0) + r.minutes));
+    (rows ?? []).forEach((r) =>
+      map.set(r.userId, (map.get(r.userId) ?? 0) + r.minutes),
+    );
     return [...map.entries()]
       .map(([uid, minutes]) => ({ name: membersById.get(uid) ?? "—", minutes }))
       .sort((a, b) => b.minutes - a.minutes);
@@ -196,7 +195,9 @@ export function ReportsPage() {
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">{t("reports.from")}</label>
+          <label className="text-xs text-muted-foreground">
+            {t("reports.from")}
+          </label>
           <Input
             type="date"
             value={from}
@@ -205,7 +206,9 @@ export function ReportsPage() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">{t("reports.to")}</label>
+          <label className="text-xs text-muted-foreground">
+            {t("reports.to")}
+          </label>
           <Input
             type="date"
             value={to}
@@ -254,7 +257,9 @@ export function ReportsPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t("reports.byDay")}</CardTitle>
+                <CardTitle className="text-base">
+                  {t("reports.byDay")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={260}>
@@ -265,7 +270,12 @@ export function ReportsPage() {
                       tickLine={false}
                       axisLine={false}
                     />
-                    <YAxis fontSize={11} tickLine={false} axisLine={false} width={28} />
+                    <YAxis
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      width={28}
+                    />
                     <Tooltip
                       formatter={(v) => [
                         `${formatHours(Number(v) * 60)} ${t("common.hours")}`,
@@ -286,7 +296,9 @@ export function ReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t("reports.byProject")}</CardTitle>
+                <CardTitle className="text-base">
+                  {t("reports.byProject")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={260}>
@@ -318,7 +330,9 @@ export function ReportsPage() {
           {teamWide && byMember.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t("reports.byMember")}</CardTitle>
+                <CardTitle className="text-base">
+                  {t("reports.byMember")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="divide-y">
@@ -337,7 +351,9 @@ export function ReportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("reports.summary")}</CardTitle>
+              <CardTitle className="text-base">
+                {t("reports.summary")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="divide-y">
@@ -351,7 +367,10 @@ export function ReportsPage() {
                     {hasBillable && (
                       <span className="w-28 text-right text-muted-foreground">
                         {p.rate != null
-                          ? formatMoney(billableAmount(p.minutes, p.rate), currency)
+                          ? formatMoney(
+                              billableAmount(p.minutes, p.rate),
+                              currency,
+                            )
                           : "—"}
                       </span>
                     )}

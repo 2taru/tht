@@ -20,7 +20,11 @@ interface RawRow {
   end_minute: number;
   description: string | null;
   project_id: string;
-  projects: { name: string; color: string; hourly_rate: number | string | null } | null;
+  projects: {
+    name: string;
+    color: string;
+    hourly_rate: number | string | null;
+  } | null;
   tasks: { title: string } | null;
 }
 
@@ -59,7 +63,9 @@ export function useReportEntries(
         projectName: r.projects?.name ?? "—",
         projectColor: r.projects?.color ?? "#64748b",
         projectRate:
-          r.projects?.hourly_rate == null ? null : Number(r.projects.hourly_rate),
+          r.projects?.hourly_rate == null
+            ? null
+            : Number(r.projects.hourly_rate),
         taskTitle: r.tasks?.title ?? null,
         description: r.description,
         minutes: r.end_minute - r.start_minute,

@@ -14,7 +14,10 @@ export interface ImportResult {
  * Імпорт записів часу: резолвить проєкти за назвою (відсутні створює),
  * вставляє записи, пропускаючи перетини (23P01).
  */
-export function useImportEntries(workspaceId: string | null, userId: string | null) {
+export function useImportEntries(
+  workspaceId: string | null,
+  userId: string | null,
+) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (rows: ParsedRow[]): Promise<ImportResult> => {

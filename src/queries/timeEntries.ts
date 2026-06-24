@@ -148,9 +148,11 @@ export function useUpdateEntry(ctx: MutationCtx) {
       if (input.projectId !== undefined) patch.project_id = input.projectId;
       if (input.taskId !== undefined) patch.task_id = input.taskId;
       if (input.entryDate !== undefined) patch.entry_date = input.entryDate;
-      if (input.startMinute !== undefined) patch.start_minute = input.startMinute;
+      if (input.startMinute !== undefined)
+        patch.start_minute = input.startMinute;
       if (input.endMinute !== undefined) patch.end_minute = input.endMinute;
-      if (input.description !== undefined) patch.description = input.description;
+      if (input.description !== undefined)
+        patch.description = input.description;
       const { data, error } = await supabase
         .from("time_entries")
         .update(patch)
@@ -223,7 +225,10 @@ export function useDeleteEntry(ctx: MutationCtx) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("time_entries").delete().eq("id", id);
+      const { error } = await supabase
+        .from("time_entries")
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
     onMutate: async (id) => {

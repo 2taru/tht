@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Project } from "@/types/domain";
 import { formatMoney } from "@/lib/money";

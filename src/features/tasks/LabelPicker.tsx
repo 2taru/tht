@@ -59,7 +59,10 @@ export function LabelPicker({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-full justify-start gap-2 font-normal">
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2 font-normal"
+        >
           <Tag className="size-4" />
           {selectedLabels.length > 0 ? (
             <span className="flex flex-wrap gap-1">
@@ -74,7 +77,9 @@ export function LabelPicker({
               ))}
             </span>
           ) : (
-            <span className="text-muted-foreground">{t("tasks.addLabels")}</span>
+            <span className="text-muted-foreground">
+              {t("tasks.addLabels")}
+            </span>
           )}
         </Button>
       </PopoverTrigger>

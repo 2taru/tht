@@ -25,12 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const STEPS = [15, 30, 60];
 const CURRENCIES = ["UAH", "USD", "EUR", "PLN", "GBP"];
@@ -63,7 +58,9 @@ export function SettingsPage() {
           <CardTitle className="text-base">{t("import.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">{t("import.description")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("import.description")}
+          </p>
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <Upload className="size-4" />
             {t("import.run")}
@@ -94,7 +91,9 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
   const updateProfile = useUpdateProfile(userId);
 
   const [displayName, setDisplayName] = useState(profile.displayName ?? "");
-  const [start, setStart] = useState(minutesToTimeValue(settings.dayStartMinute));
+  const [start, setStart] = useState(
+    minutesToTimeValue(settings.dayStartMinute),
+  );
   const [end, setEnd] = useState(minutesToTimeValue(settings.dayEndMinute));
   const [step, setStep] = useState(String(settings.gridStepMinutes));
   const [weekStart, setWeekStart] = useState(String(settings.weekStart));
@@ -168,7 +167,9 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
             </div>
           </div>
           {!boundsOk && (
-            <p className="text-sm text-destructive">{t("settings.boundsError")}</p>
+            <p className="text-sm text-destructive">
+              {t("settings.boundsError")}
+            </p>
           )}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -219,7 +220,9 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("settings.appearance")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("settings.appearance")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
