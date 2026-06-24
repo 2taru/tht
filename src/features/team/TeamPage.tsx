@@ -199,7 +199,10 @@ export function TeamPage() {
                     <Select
                       value={m.role}
                       onValueChange={(v) =>
-                        updateRole.mutate({ id: m.id, role: v as Role })
+                        updateRole.mutate(
+                          { id: m.id, role: v as Role },
+                          { onError: () => toast.error(t("common.error")) },
+                        )
                       }
                     >
                       <SelectTrigger className="w-28">
@@ -220,7 +223,11 @@ export function TeamPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeMember.mutate(m.id)}
+                      onClick={() =>
+                        removeMember.mutate(m.id, {
+                          onError: () => toast.error(t("common.error")),
+                        })
+                      }
                       aria-label={t("common.delete")}
                     >
                       <X className="size-4" />

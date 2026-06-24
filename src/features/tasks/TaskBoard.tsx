@@ -9,6 +9,8 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import type { Project, TaskStatus } from "@/types/domain";
 import { useMoveTask, type TaskWithLabels } from "@/queries/tasks";
 import { BoardColumn } from "./BoardColumn";
@@ -37,6 +39,7 @@ export function TaskBoard({
   workspaceId,
   onCardClick,
 }: TaskBoardProps) {
+  const { t } = useTranslation();
   const move = useMoveTask(workspaceId);
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(
@@ -96,7 +99,10 @@ export function TaskBoard({
     if (targetStatus === dragged.status && newPosition === dragged.position) {
       return;
     }
-    move.mutate({ id: dragged.id, status: targetStatus, position: newPosition });
+    move.mutate(
+      { id: dragged.id, status: targetStatus, position: newPosition },
+      { onError: () => toast.error(t("common.error")) },
+    );
   }
 
   return (
