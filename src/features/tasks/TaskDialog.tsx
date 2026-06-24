@@ -95,6 +95,9 @@ function TaskForm({
 }: TaskFormProps) {
   const { t } = useTranslation();
   const isEdit = !!task;
+  // Видалення задачі — лише owner/admin (UI-гейтинг; джерело істини — RLS).
+  const myRole = members.find((m) => m.userId === userId)?.role;
+  const canManage = myRole === "owner" || myRole === "admin";
   const create = useCreateTask(workspaceId, userId);
   const update = useUpdateTask(workspaceId);
   const remove = useDeleteTask(workspaceId);
@@ -284,7 +287,7 @@ function TaskForm({
       </div>
 
       <DialogFooter className="sm:justify-between">
-        {isEdit ? (
+        {isEdit && canManage ? (
           <Button variant="destructive" onClick={handleDelete}>
             {t("common.delete")}
           </Button>

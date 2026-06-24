@@ -31,6 +31,8 @@ interface ProjectRowProps {
   workspaceId: string | null;
   project: Project;
   currency: string;
+  /** Видалення проєкту доступне лише owner/admin. */
+  canManage: boolean;
   onEdit: (project: Project) => void;
 }
 
@@ -38,6 +40,7 @@ export function ProjectRow({
   workspaceId,
   project,
   currency,
+  canManage,
   onEdit,
 }: ProjectRowProps) {
   const { t } = useTranslation();
@@ -114,13 +117,15 @@ export function ProjectRow({
               </>
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => setConfirmOpen(true)}
-          >
-            <Trash2 className="size-4" />
-            {t("common.delete")}
-          </DropdownMenuItem>
+          {canManage && (
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Trash2 className="size-4" />
+              {t("common.delete")}
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

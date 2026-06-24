@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import { m } from "motion/react";
 import { Bell } from "lucide-react";
+import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useTasks } from "@/queries/tasks";
 import { classifyDue, dueOrder, type DueStatus } from "@/lib/dueDate";
@@ -26,16 +27,30 @@ const dotClass: Record<Exclude<DueStatus, "none">, string> = {
   soon: "bg-sky-500",
 };
 
+const SCOPE_KEY = "tht.notifyScope";
+type Scope = "all" | "mine";
+
 export function NotificationsBell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { workspace } = useActiveWorkspace();
   const { data: tasks } = useTasks(workspace?.id ?? null);
+
+  // Default "all" — у соло задачі зазвичай без виконавця, тож "mine" сховало б усе.
+  const [scope, setScope] = useState<Scope>(
+    () => (localStorage.getItem(SCOPE_KEY) as Scope) ?? "all",
+  );
+  function changeScope(next: Scope) {
+    setScope(next);
+    localStorage.setItem(SCOPE_KEY, next);
+  }
 
   const items = useMemo(() => {
     const today = todayISO();
     return (tasks ?? [])
       .filter((tk) => tk.status !== "done" && tk.dueDate)
+      .filter((tk) => scope === "all" || tk.assigneeId === user?.id)
       .map((tk) => ({ task: tk, due: classifyDue(tk.dueDate, today) }))
       .filter((x) => x.due !== "none")
       .sort(
@@ -43,7 +58,7 @@ export function NotificationsBell() {
           dueOrder[a.due] - dueOrder[b.due] ||
           (a.task.dueDate ?? "").localeCompare(b.task.dueDate ?? ""),
       );
-  }, [tasks]);
+  }, [tasks, scope, user?.id]);
 
   const urgent = items.filter(
     (x) => x.due === "overdue" || x.due === "today",
@@ -71,7 +86,29 @@ export function NotificationsBell() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel>{t("notifications.title")}</DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center justify-between gap-2">
+          <span>{t("notifications.title")}</span>
+          <div className="flex rounded-md border p-0.5">
+            {(["all", "mine"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  changeScope(s);
+                }}
+                className={cn(
+                  "rounded px-2 py-0.5 text-xs font-normal transition-colors",
+                  scope === s
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t(`notifications.scope.${s}`)}
+              </button>
+            ))}
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <div className="px-2 py-6 text-center text-sm text-muted-foreground">

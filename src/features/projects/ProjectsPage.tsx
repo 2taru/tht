@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import type { Project } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
+import { useMyRole } from "@/hooks/useMyRole";
 import { useProjects } from "@/queries/projects";
 import { useSettings } from "@/queries/settings";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export function ProjectsPage() {
   const { data: projects, isLoading, isError } = useProjects(workspaceId);
   const { data: settings } = useSettings(user?.id ?? null);
   const currency = settings?.currency ?? "UAH";
+  const { canManage } = useMyRole(workspaceId);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -81,6 +83,7 @@ export function ProjectsPage() {
                   workspaceId={workspaceId}
                   project={p}
                   currency={currency}
+                  canManage={canManage}
                   onEdit={openEdit}
                 />
               ))
@@ -97,6 +100,7 @@ export function ProjectsPage() {
                   workspaceId={workspaceId}
                   project={p}
                   currency={currency}
+                  canManage={canManage}
                   onEdit={openEdit}
                 />
               ))

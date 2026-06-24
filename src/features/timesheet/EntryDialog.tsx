@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -186,24 +187,33 @@ function EntryForm({
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>{t("timesheet.project")}</Label>
-          <Select value={projectId} onValueChange={setProjectId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t("timesheet.selectProject")} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  <span className="flex items-center gap-2">
-                    <span
-                      className="size-3 rounded-full"
-                      style={{ backgroundColor: p.color }}
-                    />
-                    {p.name}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {options.length === 0 ? (
+            <p className="rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
+              {t("timesheet.noProjectsHint")}{" "}
+              <Link to="/projects" className="text-foreground underline">
+                {t("timesheet.goToProjects")}
+              </Link>
+            </p>
+          ) : (
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t("timesheet.selectProject")} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="size-3 rounded-full"
+                        style={{ backgroundColor: p.color }}
+                      />
+                      {p.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="space-y-2">

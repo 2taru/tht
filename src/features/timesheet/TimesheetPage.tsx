@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
@@ -428,6 +428,16 @@ export function TimesheetPage() {
           </m.div>
         )}
       </AnimatePresence>
+
+      {!isLoading &&
+        (projects ?? []).filter((p) => !p.isArchived).length === 0 && (
+          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+            {t("timesheet.onboarding")}{" "}
+            <Link to="/projects" className="text-foreground underline">
+              {t("timesheet.goToProjects")}
+            </Link>
+          </div>
+        )}
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
