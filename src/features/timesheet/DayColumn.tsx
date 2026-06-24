@@ -275,6 +275,8 @@ export function DayColumn({
   const previewOverlap = drag && overlapsExisting(previewLo, previewHi);
   const showPreview = drag && previewHi - previewLo >= step;
   const pendingOverlap = pending && overlapsExisting(pending.lo, pending.hi);
+  // На низькому виділенні грип-пігулки накладались би на лейбл — ховаємо їх.
+  const pendingTall = pending && (pending.hi - pending.lo) * pxPerMin >= 32;
 
   return (
     <div
@@ -365,13 +367,13 @@ export function DayColumn({
               onPointerDown={(e) => startPendingDrag("top", e)}
               className="absolute inset-x-0 top-0 flex h-2.5 cursor-ns-resize items-center justify-center"
             >
-              <span className="h-1 w-6 rounded-full bg-primary/80" />
+              {pendingTall && <span className="h-1 w-6 rounded-full bg-primary/80" />}
             </div>
             <div
               onPointerDown={(e) => startPendingDrag("bottom", e)}
               className="absolute inset-x-0 bottom-0 flex h-2.5 cursor-ns-resize items-center justify-center"
             >
-              <span className="h-1 w-6 rounded-full bg-primary/80" />
+              {pendingTall && <span className="h-1 w-6 rounded-full bg-primary/80" />}
             </div>
           </m.div>
           <m.div
