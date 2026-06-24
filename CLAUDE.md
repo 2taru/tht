@@ -58,7 +58,10 @@ URL (на проді задати Site URL/Redirect URLs у дашборді —
 (`LazyMotion`+`domAnimation`, `m`-компоненти, `reducedMotion="user"`) — переходи
 сторінок, поява карток/блоків. Нові анімації — лише `m.*` (strict-режим заборонить
 `motion.*`). ✅ **Таймшит UX**: сітка масштабується під висоту екрана
-(`pxPerMin` рахується з `ResizeObserver`, межі `MIN/MAX_PX_PER_MIN` у `geometry.ts`),
+(`pxPerMin` рахується з `ResizeObserver`, межі `MIN/MAX_PX_PER_MIN` у `geometry.ts`)
++ ручний вертикальний зум (множник поверх авто-фіту, кнопки −/+ у топбарі,
+`ZOOM_MIN/MAX/FACTOR` + `MAX_ZOOM_PX_PER_MIN`, зберігається в localStorage
+`tht.timesheetZoom`; зум > фіт → вертикальний скрол) — для малих екранів,
 drag-виділення показує тривалість («X год Y хв») і не відкриває діалог одразу —
 зберігання через кнопку-галочку (`pending` у `DayColumn`); взаємодія зі слотом —
 зонна (`computeZone` у `EntryBlock`): ліва третина = редагування (cursor-pointer),

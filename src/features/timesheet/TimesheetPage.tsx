@@ -10,6 +10,8 @@ import {
   ChevronUp,
   CopyPlus,
   Plus,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
 import { toast } from "sonner";
@@ -51,7 +53,15 @@ import {
 import { TimeAxis } from "./TimeAxis";
 import { DayColumn } from "./DayColumn";
 import { EntryDialog, type EntryDraft } from "./EntryDialog";
-import { DEFAULT_PX_PER_MIN, MAX_PX_PER_MIN, MIN_PX_PER_MIN } from "./geometry";
+import {
+  DEFAULT_PX_PER_MIN,
+  MAX_PX_PER_MIN,
+  MAX_ZOOM_PX_PER_MIN,
+  MIN_PX_PER_MIN,
+  ZOOM_FACTOR,
+  ZOOM_MAX,
+  ZOOM_MIN,
+} from "./geometry";
 
 const DEFAULTS = {
   dayStartMinute: 540,
@@ -157,14 +167,30 @@ export function TimesheetPage() {
     return () => ro.disconnect();
   }, [isLoading]);
 
+  // Ручний зум по вертикалі (множник поверх авто-фіту) — для малих екранів.
+  const [zoom, setZoom] = useState(() => {
+    const v = Number(localStorage.getItem("tht.timesheetZoom"));
+    return v >= ZOOM_MIN && v <= ZOOM_MAX ? v : 1;
+  });
+  function changeZoom(next: number) {
+    const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+    setZoom(z);
+    localStorage.setItem("tht.timesheetZoom", String(z));
+  }
+
   const gridSpanMinutes = gridEnd - gridStart;
   const pxPerMin = useMemo(() => {
-    if (!availableHeight || gridSpanMinutes <= 0) return DEFAULT_PX_PER_MIN;
+    const clampZoom = (v: number) =>
+      Math.min(MAX_ZOOM_PX_PER_MIN, Math.max(MIN_PX_PER_MIN, v * zoom));
+    if (!availableHeight || gridSpanMinutes <= 0)
+      return clampZoom(DEFAULT_PX_PER_MIN);
     const HEADER_PX = 40; // рядок із датами
     const FOOTER_PX = 29; // підсумок дня
     const fit = (availableHeight - HEADER_PX - FOOTER_PX) / gridSpanMinutes;
-    return Math.min(MAX_PX_PER_MIN, Math.max(MIN_PX_PER_MIN, fit));
-  }, [availableHeight, gridSpanMinutes]);
+    // База — авто-фіт під висоту; зум множить її (зум > 1 → вертикальний скрол).
+    const base = Math.min(MAX_PX_PER_MIN, Math.max(MIN_PX_PER_MIN, fit));
+    return clampZoom(base);
+  }, [availableHeight, gridSpanMinutes, zoom]);
 
   function requestMove(
     entry: TimeEntry,
@@ -397,6 +423,28 @@ export function TimesheetPage() {
                 )}
               </Button>
             )}
+          </div>
+          <div className="flex items-center rounded-md border">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 rounded-r-none"
+              onClick={() => changeZoom(zoom / ZOOM_FACTOR)}
+              disabled={zoom <= ZOOM_MIN + 0.001}
+              aria-label={t("timesheet.zoomOut")}
+            >
+              <ZoomOut className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 rounded-l-none border-l"
+              onClick={() => changeZoom(zoom * ZOOM_FACTOR)}
+              disabled={zoom >= ZOOM_MAX - 0.001}
+              aria-label={t("timesheet.zoomIn")}
+            >
+              <ZoomIn className="size-4" />
+            </Button>
           </div>
           <Button variant="outline" onClick={handleCopyPeriod}>
             <CopyPlus className="size-4" />
