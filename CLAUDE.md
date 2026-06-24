@@ -98,6 +98,9 @@ Supabase CLI підключено як dev-залежність (`pnpm exec supa
 - Тема світла/темна через next-themes; кольори проєктів — користувацькі hex.
 
 ## Відомі нюанси / QA
+- **Харднінг RLS** (міграція `0009`): `is_member` отримав `set search_path = public`
+  (був єдиним security-definer без нього); `invite_member` тепер забороняє роль
+  `owner` (бо SECURITY DEFINER обходить RLS і міг обійти захист owner-рядка з `0007`).
 - **RLS команд** (міграція `0007`): owner-рядок `workspace_members` захищений —
   ні admin, ні хтось інший не може його видалити/понизити, і ніхто не підвищується
   до `owner` через API (передача власності — окрема майбутня фіча). service_role має
