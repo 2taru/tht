@@ -66,7 +66,7 @@ export function LabelPicker({
               {selectedLabels.map((l) => (
                 <span
                   key={l.id}
-                  className="rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
+                  className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-white"
                   style={{ backgroundColor: l.color }}
                 >
                   {l.name}
@@ -87,7 +87,7 @@ export function LabelPicker({
                 key={l.id}
                 type="button"
                 onClick={() => toggle(l.id)}
-                className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:bg-accent"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:bg-accent"
               >
                 <span
                   className="size-3 rounded-full"

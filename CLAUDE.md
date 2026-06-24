@@ -115,6 +115,12 @@ Supabase CLI підключено як dev-залежність (`pnpm exec supa
 - **TS строгий**, без зайвих `any`. Аліас імпорту `@/` → `src/`.
 - **БД — snake_case**, доменні TS-типи — camelCase (мапінг у `queries`).
 - Тема світла/темна через next-themes; кольори проєктів — користувацькі hex.
+- **UI-конвенції заокруглень** (тримати на токен-шкалі, без bare `rounded`=4px):
+  панелі/картки/діалоги/списки/empty-states — `rounded-lg` (Card теж переведено на
+  `rounded-lg`); контроли (button/input/select) — `rounded-md`; пункти меню/тогли/
+  focus-таргети — `rounded-sm`; беджі/пігулки/аватари/дотики — `rounded-full`.
+  Empty-state — `rounded-lg border border-dashed p-8 text-center text-muted-foreground`.
+  Анімації появи — `m.*` із tween `duration: 0.15`; інтерактивні — spring.
 
 ## Відомі нюанси / QA
 - **Харднінг RLS** (міграція `0009`): `is_member` отримав `set search_path = public`

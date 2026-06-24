@@ -32,7 +32,7 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
       style={{ transform: CSS.Transform.toString(transform), transition }}
       initial={{ opacity: 0 }}
       animate={{ opacity: isDragging ? 0.4 : 1 }}
-      transition={{ duration: 0.18 }}
+      transition={{ duration: 0.15 }}
       className={cn(
         "group rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
       )}
@@ -50,7 +50,7 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
         <button
           type="button"
           onClick={() => onClick(task)}
-          className="min-w-0 flex-1 cursor-pointer space-y-2 rounded text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="min-w-0 flex-1 cursor-pointer space-y-2 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <p className="text-sm font-medium leading-snug">{task.title}</p>
 
@@ -103,7 +103,7 @@ export function TaskCard({ task, project, assigneeName, onClick }: TaskCardProps
               {task.labels.map((l) => (
                 <span
                   key={l.id}
-                  className="rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
+                  className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-white"
                   style={{ backgroundColor: l.color }}
                 >
                   {l.name}

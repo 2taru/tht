@@ -56,7 +56,7 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
           type="color"
           value={isValidHex(value) ? value : "#000000"}
           onChange={(e) => onChange(e.target.value)}
-          className="size-9 cursor-pointer rounded border bg-transparent p-0.5"
+          className="size-9 cursor-pointer rounded-md border bg-transparent p-0.5"
           aria-label="custom color"
         />
         <Input

@@ -247,7 +247,7 @@ export function ReportsPage() {
       {isLoading ? (
         <Skeleton className="h-80 w-full" />
       ) : !rows || rows.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+        <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
           {t("reports.empty")}
         </div>
       ) : (

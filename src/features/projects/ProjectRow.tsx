@@ -83,7 +83,7 @@ export function ProjectRow({
       <button
         type="button"
         onClick={() => onEdit(project)}
-        className="min-w-0 flex-1 cursor-pointer truncate rounded text-left font-medium outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+        className="min-w-0 flex-1 cursor-pointer truncate rounded-sm text-left font-medium outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
       >
         {project.name}
       </button>

@@ -98,7 +98,7 @@ export function NotificationsBell() {
                   changeScope(s);
                 }}
                 className={cn(
-                  "rounded px-2 py-0.5 text-xs font-normal transition-colors",
+                  "rounded-sm px-2 py-0.5 text-xs font-normal transition-colors",
                   scope === s
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:text-foreground",

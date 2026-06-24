@@ -333,7 +333,7 @@ export function DayColumn({
             height: (previewHi - previewLo) * pxPerMin,
           }}
         >
-          <span className="rounded bg-background/70 px-1.5 py-0.5 backdrop-blur-sm">
+          <span className="rounded-md bg-background/70 px-1.5 py-0.5 backdrop-blur-sm">
             {durationLabel(previewHi - previewLo)}
           </span>
         </div>
@@ -359,7 +359,7 @@ export function DayColumn({
               height: (pending.hi - pending.lo) * pxPerMin,
             }}
           >
-            <span className="pointer-events-none rounded bg-background/70 px-1.5 py-0.5 backdrop-blur-sm">
+            <span className="pointer-events-none rounded-md bg-background/70 px-1.5 py-0.5 backdrop-blur-sm">
               {durationLabel(pending.hi - pending.lo)}
             </span>
             {/* Ручки ресайзу */}
