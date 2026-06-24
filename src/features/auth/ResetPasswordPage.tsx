@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
+import { LogoMark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +43,8 @@ export function ResetPasswordPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="items-center text-center">
+          <LogoMark className="size-11" />
           <CardTitle>{t("auth.resetTitle")}</CardTitle>
           <CardDescription>{t("auth.resetDescription")}</CardDescription>
         </CardHeader>

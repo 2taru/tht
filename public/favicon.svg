@@ -1,5 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#6366f1" />
-  <path d="M16 8v8l5 3" fill="none" stroke="#fff" stroke-width="2.5"
-        stroke-linecap="round" stroke-linejoin="round" />
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tht" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366f1" />
+      <stop offset="1" stop-color="#8b5cf6" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#tht)" />
+  <!-- циферблат -->
+  <circle cx="32" cy="33" r="18" stroke="#fff" stroke-opacity="0.30" stroke-width="2.5" />
+  <g stroke="#fff" stroke-opacity="0.55" stroke-width="2.5" stroke-linecap="round">
+    <path d="M32 17.5v3" />
+    <path d="M47.5 33h-3" />
+    <path d="M32 48.5v-3" />
+    <path d="M16.5 33h3" />
+  </g>
+  <!-- літера «t» = вертикаль (стрілка на 12) + перекладина -->
+  <g stroke="#fff" stroke-width="5" stroke-linecap="round">
+    <path d="M32 21.5V43" />
+    <path d="M24 28h16" />
+  </g>
+  <circle cx="32" cy="33" r="3" fill="#fff" />
 </svg>

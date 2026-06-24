@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/Logo";
 
 const items = [
   { to: "/timesheet", key: "nav.timesheet", icon: CalendarClock },
@@ -24,8 +25,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="flex h-14 items-center px-4 text-lg font-semibold">
-        {t("common.appName")}
+      <div className="flex h-14 items-center px-4">
+        <Logo />
       </div>
       <nav className="flex flex-col gap-1 p-2">
         {items.map(({ to, key, icon: Icon }) => (

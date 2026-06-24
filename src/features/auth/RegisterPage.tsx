@@ -7,16 +7,11 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { GoogleButton } from "./GoogleButton";
+import { LogoMark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const schema = z.object({
   email: z.string().email(),
@@ -60,9 +55,9 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="items-center text-center">
+          <LogoMark className="size-11" />
           <CardTitle>{t("auth.registerTitle")}</CardTitle>
-          <CardDescription>{t("common.appName")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {confirmEmail ? (
