@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { GoogleButton } from "./GoogleButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ type FormValues = z.infer<typeof schema>;
 export function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "1";
   const [submitting, setSubmitting] = useState(false);
   const {
     register,
@@ -44,14 +47,6 @@ export function LoginPage() {
     navigate("/timesheet", { replace: true });
   }
 
-  async function signInWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/timesheet` },
-    });
-    if (error) toast.error(t("auth.genericError"));
-  }
-
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
@@ -60,6 +55,11 @@ export function LoginPage() {
           <CardDescription>{t("common.appName")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {justRegistered && (
+            <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400">
+              {t("auth.registered")}
+            </p>
+          )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.email")}</Label>
@@ -84,9 +84,7 @@ export function LoginPage() {
               {submitting ? t("auth.signingIn") : t("auth.login")}
             </Button>
           </form>
-          <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
-            {t("auth.googleSignIn")}
-          </Button>
+          <GoogleButton />
           <p className="text-center text-sm">
             <Link to="/reset-password" className="text-muted-foreground underline">
               {t("auth.forgotPassword")}

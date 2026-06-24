@@ -10,9 +10,15 @@
    pnpm exec supabase link --project-ref <ref>
    pnpm exec supabase db push          # застосує supabase/migrations/*
    ```
-3. Auth → URL Configuration: додати прод-домен у Site URL і Redirect URLs.
-4. Google OAuth: увімкнути провайдера, вставити Client ID/Secret; у Google Cloud
-   Console додати `https://<ref>.supabase.co/auth/v1/callback` у Authorized redirect URIs.
+3. Auth → URL Configuration (саме це лікує лінки на `localhost:3000` у листах):
+   - **Site URL** = `https://tht.example.com` (прод-домен, без слешу в кінці).
+   - **Redirect URLs** додати `https://tht.example.com/**` (покриває `/login`,
+     `/update-password`, `/timesheet`, куди ведуть лист підтвердження, скидання
+     пароля й Google-колбек).
+4. Google OAuth: Authentication → Providers → Google → увімкнути, вставити
+   Client ID/Secret. У Google Cloud Console (OAuth 2.0 Client) додати
+   `https://<ref>.supabase.co/auth/v1/callback` у Authorized redirect URIs, а
+   прод-домен — у Authorized JavaScript origins.
 
 ## 2. Білд фронта
 ```

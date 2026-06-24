@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { GoogleButton } from "./GoogleButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,11 @@ export function RegisterPage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
-    const { data, error } = await supabase.auth.signUp(values);
+    const { data, error } = await supabase.auth.signUp({
+      ...values,
+      // Лінк підтвердження має вести на наш домен, а не на дефолтний Site URL.
+      options: { emailRedirectTo: `${window.location.origin}/login?registered=1` },
+    });
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
@@ -86,6 +91,7 @@ export function RegisterPage() {
               {t("auth.register")}
             </Button>
           </form>
+          <GoogleButton />
           <p className="text-center text-sm text-muted-foreground">
             {t("auth.haveAccount")}{" "}
             <Link to="/login" className="text-foreground underline">

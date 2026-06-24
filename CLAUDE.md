@@ -24,7 +24,11 @@ multi-tenant (`workspace_id` всюди). Мова продукту — укра
 дублювання запису в найближчий вільний слот (`findFreeSlot`), копія дня/тижня в
 наступний період (`useBulkCreateEntries`, пропуск перетинів). ✅ **Auth/надійність**:
 скидання пароля (`/reset-password` + `/update-password`), UX підтвердження email,
-route-level error boundary (`RouteError`). ✅ **Мобільна адаптація**: бургер-drawer
+route-level error boundary (`RouteError`), **Google OAuth** (спільний
+`GoogleButton` на login/register, `signInWithOAuth`); `signUp` передає
+`emailRedirectTo` на наш домен, інакше лінк підтвердження веде на дефолтний Site
+URL (на проді задати Site URL/Redirect URLs у дашборді — деталі `deploy/README.md`).
+✅ **Мобільна адаптація**: бургер-drawer
 (`MobileNav`/Sheet), сайдбар ховається < lg, канбан/тижнева сітка з горизонтальним
 скролом, мобільна FAB швидкого додавання. ✅ **Білінг** (`0006_billing.sql`): погодинна
 ставка на проєкті + валюта в налаштуваннях; у звітах суми до оплати + CSV-колонка
