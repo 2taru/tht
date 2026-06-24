@@ -93,3 +93,21 @@ export function useRemoveMember(workspaceId: string | null) {
     },
   });
 }
+
+/** Вийти з простору: видаляємо ВЛАСНЕ членство (RLS дозволяє не-owner). */
+export function useLeaveWorkspace() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { workspaceId: string; userId: string }) => {
+      const { error } = await supabase
+        .from("workspace_members")
+        .delete()
+        .eq("workspace_id", input.workspaceId)
+        .eq("user_id", input.userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+  });
+}

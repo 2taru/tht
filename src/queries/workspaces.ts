@@ -37,3 +37,33 @@ export function useCreateWorkspace(userId: string | null) {
     },
   });
 }
+
+export function useRenameWorkspace() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; name: string }) => {
+      const { error } = await supabase
+        .from("workspaces")
+        .update({ name: input.name })
+        .eq("id", input.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+  });
+}
+
+/** Видалити простір (лише owner — RLS). Каскадом зносить проєкти/задачі/записи. */
+export function useDeleteWorkspace() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("workspaces").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+  });
+}

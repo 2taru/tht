@@ -12,6 +12,13 @@ import { useTasks, type TaskWithLabels } from "@/queries/tasks";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TaskBoard } from "./TaskBoard";
 import { TaskList } from "./TaskList";
 import { TaskDialog } from "./TaskDialog";
@@ -38,6 +45,14 @@ export function TasksPage() {
 
   const [params, setParams] = useSearchParams();
   const view = (params.get("view") as View) ?? "board";
+
+  const [assigneeF, setAssigneeF] = useState<string>("all");
+  const visibleTasks = useMemo(() => {
+    const all = tasks ?? [];
+    if (assigneeF === "all") return all;
+    if (assigneeF === "none") return all.filter((tk) => !tk.assigneeId);
+    return all.filter((tk) => tk.assigneeId === assigneeF);
+  }, [tasks, assigneeF]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TaskWithLabels | null>(null);
@@ -67,6 +82,23 @@ export function TasksPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("tasks.title")}</h1>
         <div className="flex items-center gap-3">
+          {(members?.length ?? 0) > 1 && (
+            <Select value={assigneeF} onValueChange={setAssigneeF}>
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("tasks.allAssignees")}</SelectItem>
+                <SelectItem value="none">{t("tasks.noAssignee")}</SelectItem>
+                {(members ?? []).map((m) => (
+                  <SelectItem key={m.userId} value={m.userId}>
+                    {m.displayName ?? "—"}
+                    {m.userId === userId ? ` (${t("team.you")})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Tabs value={view} onValueChange={(v) => setView(v as View)}>
             <TabsList>
               <TabsTrigger value="board">{t("tasks.board")}</TabsTrigger>
@@ -84,7 +116,7 @@ export function TasksPage() {
         <Skeleton className="h-96 w-full" />
       ) : view === "board" ? (
         <TaskBoard
-          tasks={tasks ?? []}
+          tasks={visibleTasks}
           projectsById={projectsById}
           membersById={membersById}
           workspaceId={workspaceId}
@@ -92,7 +124,7 @@ export function TasksPage() {
         />
       ) : (
         <TaskList
-          tasks={tasks ?? []}
+          tasks={visibleTasks}
           projects={projects ?? []}
           projectsById={projectsById}
           membersById={membersById}

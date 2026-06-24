@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 
 export interface ReportRow {
   date: string;
+  userId: string;
   projectId: string;
   projectName: string;
   projectColor: string;
@@ -14,6 +15,7 @@ export interface ReportRow {
 
 interface RawRow {
   entry_date: string;
+  user_id: string;
   start_minute: number;
   end_minute: number;
   description: string | null;
@@ -22,31 +24,37 @@ interface RawRow {
   tasks: { title: string } | null;
 }
 
-/** Записи часу за період (з назвами проєкту/задачі) для звітів. */
+/**
+ * Записи часу за період (з назвами проєкту/задачі) для звітів.
+ * `memberId`: конкретний user_id або null = усі учасники простору (RLS все одно
+ * обмежує читання межами команди).
+ */
 export function useReportEntries(
   workspaceId: string | null,
-  userId: string | null,
+  memberId: string | null,
   fromISO: string,
   toISO: string,
 ) {
   return useQuery({
-    queryKey: ["report", workspaceId, userId, fromISO, toISO],
-    enabled: !!workspaceId && !!userId,
+    queryKey: ["report", workspaceId, memberId, fromISO, toISO],
+    enabled: !!workspaceId,
     queryFn: async (): Promise<ReportRow[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("time_entries")
         .select(
-          "entry_date, start_minute, end_minute, description, project_id, projects(name, color, hourly_rate), tasks(title)",
+          "entry_date, user_id, start_minute, end_minute, description, project_id, projects(name, color, hourly_rate), tasks(title)",
         )
         .eq("workspace_id", workspaceId!)
-        .eq("user_id", userId!)
         .gte("entry_date", fromISO)
-        .lte("entry_date", toISO)
+        .lte("entry_date", toISO);
+      if (memberId) q = q.eq("user_id", memberId);
+      const { data, error } = await q
         .order("entry_date", { ascending: true })
         .order("start_minute", { ascending: true });
       if (error) throw error;
       return (data as unknown as RawRow[]).map((r) => ({
         date: r.entry_date,
+        userId: r.user_id,
         projectId: r.project_id,
         projectName: r.projects?.name ?? "—",
         projectColor: r.projects?.color ?? "#64748b",

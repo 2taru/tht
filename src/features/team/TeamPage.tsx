@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { UserPlus, X } from "lucide-react";
+import { LogOut, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Role } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -8,10 +8,26 @@ import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import {
   INVITE_USER_NOT_FOUND,
   useInviteMember,
+  useLeaveWorkspace,
   useMembers,
   useRemoveMember,
   useUpdateMemberRole,
 } from "@/queries/members";
+import {
+  useDeleteWorkspace,
+  useRenameWorkspace,
+} from "@/queries/workspaces";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,18 +53,61 @@ const ROLES: Role[] = ["member", "admin", "owner"];
 export function TeamPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { workspace } = useActiveWorkspace();
+  const { workspace, selectWorkspace, workspaces } = useActiveWorkspace();
   const workspaceId = workspace?.id ?? null;
   const { data: members, isLoading } = useMembers(workspaceId);
   const invite = useInviteMember(workspaceId);
   const updateRole = useUpdateMemberRole(workspaceId);
   const removeMember = useRemoveMember(workspaceId);
+  const renameWs = useRenameWorkspace();
+  const deleteWs = useDeleteWorkspace();
+  const leaveWs = useLeaveWorkspace();
 
   const [email, setEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("member");
 
   const myRole = members?.find((m) => m.userId === user?.id)?.role;
   const canManage = myRole === "owner" || myRole === "admin";
+  const isOwner = myRole === "owner";
+
+  // Після виходу/видалення активного простору перемикаємось на інший наявний.
+  function switchAway() {
+    const next = workspaces.find((w) => w.id !== workspaceId);
+    if (next) selectWorkspace(next.id);
+  }
+
+  async function handleRename(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed || !workspaceId || trimmed === workspace?.name) return;
+    try {
+      await renameWs.mutateAsync({ id: workspaceId, name: trimmed });
+      toast.success(t("team.renamed"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
+  async function handleLeave() {
+    if (!workspaceId || !user?.id) return;
+    try {
+      await leaveWs.mutateAsync({ workspaceId, userId: user.id });
+      switchAway();
+      toast.success(t("team.left"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
+  async function handleDelete() {
+    if (!workspaceId) return;
+    try {
+      await deleteWs.mutateAsync(workspaceId);
+      switchAway();
+      toast.success(t("team.deleted"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
 
   async function handleInvite() {
     const trimmed = email.trim();
@@ -173,6 +232,110 @@ export function TeamPage() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("team.settings")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {canManage && (
+            <RenameForm
+              key={workspaceId}
+              initialName={workspace?.name ?? ""}
+              onSave={handleRename}
+            />
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {!isOwner && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline">
+                    <LogOut className="size-4" />
+                    {t("team.leave")}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("team.leave")}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t("team.leaveConfirm", { name: workspace?.name ?? "" })}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLeave}>
+                      {t("team.leave")}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+
+            {isOwner && workspaces.length > 1 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="size-4" />
+                    {t("team.deleteWorkspace")}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("team.deleteWorkspace")}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t("team.deleteConfirm", { name: workspace?.name ?? "" })}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {t("common.delete")}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/** Поле ренейму простору. Keyed по workspaceId — стан скидається при перемиканні. */
+function RenameForm({
+  initialName,
+  onSave,
+}: {
+  initialName: string;
+  onSave: (name: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [value, setValue] = useState(initialName);
+  const dirty = value.trim().length > 0 && value.trim() !== initialName;
+  return (
+    <div className="flex flex-wrap items-end gap-2">
+      <div className="flex-1 space-y-1">
+        <Label htmlFor="ws-rename">{t("workspace.name")}</Label>
+        <Input
+          id="ws-rename"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (dirty) onSave(value);
+            }
+          }}
+        />
+      </div>
+      <Button onClick={() => onSave(value)} disabled={!dirty}>
+        {t("team.rename")}
+      </Button>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
+import { useMembers } from "@/queries/members";
 import { useReportEntries, type ReportRow } from "@/queries/reports";
 import { useSettings } from "@/queries/settings";
 import { fromISODate, toISODate } from "@/lib/dates";
@@ -32,6 +33,13 @@ import { toCsv, downloadCsv } from "@/lib/csv";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -51,14 +59,34 @@ export function ReportsPage() {
   const { workspace } = useActiveWorkspace();
   const workspaceId = workspace?.id ?? null;
 
+  const { data: members } = useMembers(workspaceId);
+  const membersById = useMemo(() => {
+    const map = new Map<string, string>();
+    (members ?? []).forEach((m) => map.set(m.userId, m.displayName ?? "—"));
+    return map;
+  }, [members]);
+  const myRole = members?.find((m) => m.userId === userId)?.role;
+  const canSeeTeam = myRole === "owner" || myRole === "admin";
+
   const [params, setParams] = useSearchParams();
   const def = defaultRange();
   const from = params.get("from") ?? def.from;
   const to = params.get("to") ?? def.to;
 
+  // member-фільтр: "self" (за замовч.), "all" (вся команда) або user_id учасника.
+  // Звичайний member завжди прив'язаний до власних годин.
+  const [memberSel, setMemberSel] = useState<string>("self");
+  const effectiveMember =
+    !canSeeTeam || memberSel === "self"
+      ? userId
+      : memberSel === "all"
+        ? null
+        : memberSel;
+  const teamWide = effectiveMember === null;
+
   const { data: rows, isLoading } = useReportEntries(
     workspaceId,
-    userId,
+    effectiveMember,
     from,
     to,
   );
@@ -112,6 +140,14 @@ export function ReportsPage() {
     return [...map.values()].sort((a, b) => b.minutes - a.minutes);
   }, [rows]);
 
+  const byMember = useMemo(() => {
+    const map = new Map<string, number>();
+    (rows ?? []).forEach((r) => map.set(r.userId, (map.get(r.userId) ?? 0) + r.minutes));
+    return [...map.entries()]
+      .map(([uid, minutes]) => ({ name: membersById.get(uid) ?? "—", minutes }))
+      .sort((a, b) => b.minutes - a.minutes);
+  }, [rows, membersById]);
+
   const totalMinutes = (rows ?? []).reduce((s, r) => s + r.minutes, 0);
   const totalAmount = byProject.reduce(
     (s, p) => s + billableAmount(p.minutes, p.rate),
@@ -122,6 +158,7 @@ export function ReportsPage() {
   function handleExport() {
     const headers = [
       t("reports.csvDate"),
+      ...(teamWide ? [t("reports.csvMember")] : []),
       t("reports.csvProject"),
       t("reports.csvTask"),
       t("reports.csvDescription"),
@@ -130,6 +167,7 @@ export function ReportsPage() {
     ];
     const csvRows = (rows ?? []).map((r: ReportRow) => [
       r.date,
+      ...(teamWide ? [membersById.get(r.userId) ?? "—"] : []),
       r.projectName,
       r.taskTitle ?? "",
       r.description ?? "",
@@ -180,6 +218,24 @@ export function ReportsPage() {
         <Button variant="secondary" onClick={presetMonth}>
           {t("reports.thisMonth")}
         </Button>
+        {canSeeTeam && (members?.length ?? 0) > 1 && (
+          <Select value={memberSel} onValueChange={setMemberSel}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="self">{t("team.you")}</SelectItem>
+              <SelectItem value="all">{t("reports.allMembers")}</SelectItem>
+              {(members ?? [])
+                .filter((m) => m.userId !== userId)
+                .map((m) => (
+                  <SelectItem key={m.userId} value={m.userId}>
+                    {m.displayName ?? "—"}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        )}
         <div className="ml-auto text-sm text-muted-foreground">
           {t("reports.total")}:{" "}
           <span className="font-semibold text-foreground">
@@ -254,6 +310,26 @@ export function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {teamWide && byMember.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("reports.byMember")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="divide-y">
+                  {byMember.map((m) => (
+                    <div key={m.name} className="flex items-center gap-3 py-2">
+                      <span className="flex-1 truncate">{m.name}</span>
+                      <span className="w-24 text-right font-medium">
+                        {formatHours(m.minutes)} {t("common.hours")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
