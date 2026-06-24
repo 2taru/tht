@@ -87,7 +87,7 @@ export function ImportDialog({
         <div className="space-y-4">
           <Input
             type="file"
-            accept=".csv,.xlsx,.xls"
+            accept=".csv,text/csv"
             className="cursor-pointer file:cursor-pointer"
             onChange={(e) => {
               const file = e.target.files?.[0];

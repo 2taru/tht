@@ -1,5 +1,3 @@
-import * as XLSX from "xlsx";
-
 export interface ParsedRow {
   date: string; // YYYY-MM-DD
   projectName: string;
@@ -124,31 +122,28 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
-/** Файл → масив рядків-обʼєктів {заголовок: значення}. */
+/** Файл → масив рядків-обʼєктів {заголовок: значення}. Лише CSV. */
 async function readRecords(file: File): Promise<Record<string, string>[]> {
   const isCsv =
     file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
-  if (isCsv) {
-    const text = await file.text();
-    const table = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ""));
-    if (table.length === 0) return [];
-    const headers = table[0];
-    return table.slice(1).map((cells) => {
-      const obj: Record<string, string> = {};
-      headers.forEach((h, i) => (obj[h] = cells[i] ?? ""));
-      return obj;
-    });
+  // XLSX свідомо не підтримуємо: SheetJS-парсер мав HIGH-вразливості
+  // (prototype pollution / ReDoS), а патч лише поза npm. Імпорт — лише CSV.
+  if (!isCsv) {
+    throw new Error("unsupported-format");
   }
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
-  const sheet = wb.Sheets[wb.SheetNames[0]];
-  return XLSX.utils.sheet_to_json<Record<string, string>>(sheet, {
-    raw: false,
-    defval: "",
+  const text = await file.text();
+  const table = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ""));
+  if (table.length === 0) return [];
+  const headers = table[0];
+  return table.slice(1).map((cells) => {
+    // Object.create(null) — без прототипу, тож заголовок __proto__ нічого не псує.
+    const obj = Object.create(null) as Record<string, string>;
+    headers.forEach((h, i) => (obj[h] = cells[i] ?? ""));
+    return obj;
   });
 }
 
-/** Парсить CSV/XLSX-файл у записи часу. Невалідні рядки рахуються в `invalid`. */
+/** Парсить CSV-файл у записи часу. Невалідні рядки рахуються в `invalid`. */
 export async function parseEntriesFile(file: File): Promise<ParseResult> {
   const raw = await readRecords(file);
 
