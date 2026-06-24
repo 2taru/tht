@@ -121,6 +121,9 @@ Supabase CLI підключено як dev-залежність (`pnpm exec supa
   focus-таргети — `rounded-sm`; беджі/пігулки/аватари/дотики — `rounded-full`.
   Empty-state — `rounded-lg border border-dashed p-8 text-center text-muted-foreground`.
   Анімації появи — `m.*` із tween `duration: 0.15`; інтерактивні — spring.
+- **Ширина сторінок:** центровані сторінки (звіти/налаштування/проєкти/команда) —
+  єдиний контейнер `mx-auto max-w-4xl space-y-6` (щоб поля по ширині збігалися між
+  сторінками). Робочі поверхні (таймшит/задачі) — full-bleed `flex h-full flex-col gap-4`.
 
 ## Відомі нюанси / QA
 - **Харднінг RLS** (міграція `0009`): `is_member` отримав `set search_path = public`

@@ -45,7 +45,7 @@ export function SettingsPage() {
   const [importOpen, setImportOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <h1 className="text-2xl font-semibold">{t("settings.title")}</h1>
       {!settings || !profile ? (
         <Skeleton className="h-96 w-full" />
