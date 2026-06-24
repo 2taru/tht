@@ -1,6 +1,12 @@
-/** Екранує значення для CSV (лапки, коми, переноси). */
+/** Екранує значення для CSV (лапки, коми, переноси) + захист від CSV-формул. */
 function escapeCell(value: string | number): string {
-  const s = String(value);
+  let s = String(value);
+  // CSV/formula injection (CWE-1236): значення, що починається з = + - @ tab CR,
+  // у Excel/Sheets може виконатись як формула. Префіксуємо текстові комірки '.
+  // Числові комірки — наші обчислені значення (завжди додатні), їх не чіпаємо.
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) {
+    s = "'" + s;
+  }
   if (/[",\n;]/.test(s)) {
     return `"${s.replace(/"/g, '""')}"`;
   }
