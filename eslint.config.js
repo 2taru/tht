@@ -29,4 +29,12 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // shadcn-примітиви навмисно експортують *Variants (cva) поряд із компонентом,
+    // а router.tsx — конфіг роутів (router + lazy-екрани). Fast-refresh тут не діє.
+    files: ["src/components/ui/**/*.{ts,tsx}", "src/routes/router.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 );

@@ -10,6 +10,7 @@ import { useSettings } from "@/queries/settings";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { ProjectRow } from "./ProjectRow";
 import { ProjectDialog } from "./ProjectDialog";
 
@@ -75,7 +76,7 @@ export function ProjectsPage() {
 
           <TabsContent value="active" className="space-y-2">
             {active.length === 0 ? (
-              <EmptyState message={t("projects.emptyActive")} />
+              <EmptyState>{t("projects.emptyActive")}</EmptyState>
             ) : (
               active.map((p) => (
                 <ProjectRow
@@ -92,7 +93,7 @@ export function ProjectsPage() {
 
           <TabsContent value="archived" className="space-y-2">
             {archived.length === 0 ? (
-              <EmptyState message={t("projects.emptyArchived")} />
+              <EmptyState>{t("projects.emptyArchived")}</EmptyState>
             ) : (
               archived.map((p) => (
                 <ProjectRow
@@ -115,14 +116,6 @@ export function ProjectsPage() {
         onOpenChange={setDialogOpen}
         project={editing}
       />
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-      {message}
     </div>
   );
 }

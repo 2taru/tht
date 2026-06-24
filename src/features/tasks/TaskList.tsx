@@ -8,6 +8,7 @@ import { fromISODate, todayISO } from "@/lib/dates";
 import { classifyDue } from "@/lib/dueDate";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/EmptyState";
 import {
   Select,
   SelectContent,
@@ -103,9 +104,7 @@ export function TaskList({
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("tasks.empty")}
-        </div>
+        <EmptyState>{t("tasks.empty")}</EmptyState>
       ) : (
         <div className="divide-y rounded-lg border">
           {rows.map((tk) => {

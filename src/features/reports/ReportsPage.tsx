@@ -33,6 +33,7 @@ import { toCsv, downloadCsv } from "@/lib/csv";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
 import {
   Select,
   SelectContent,
@@ -247,9 +248,7 @@ export function ReportsPage() {
       {isLoading ? (
         <Skeleton className="h-80 w-full" />
       ) : !rows || rows.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("reports.empty")}
-        </div>
+        <EmptyState>{t("reports.empty")}</EmptyState>
       ) : (
         <>
           <div className="grid gap-4 lg:grid-cols-2">

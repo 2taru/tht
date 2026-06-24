@@ -52,6 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext value={value}>{children}</AuthContext>;
 }
 
+// Хук колокований із провайдером навмисно (контекст auth) — FR-правило не застосовне.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = use(AuthContext);
   if (!ctx) throw new Error("useAuth має використовуватись усередині AuthProvider");

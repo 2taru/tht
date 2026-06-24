@@ -20,7 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ColorPicker, isValidHex } from "./ColorPicker";
+import { ColorPicker } from "./ColorPicker";
+import { isValidHex } from "@/lib/color";
 
 const schema = z.object({
   name: z.string().trim().min(1),

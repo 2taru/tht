@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isValidHex } from "@/lib/color";
 import { Input } from "@/components/ui/input";
 
 const PRESETS = [
@@ -16,12 +17,6 @@ const PRESETS = [
   "#0d9488",
   "#64748b",
 ];
-
-const HEX_RE = /^#[0-9a-fA-F]{6}$/;
-
-export function isValidHex(value: string): boolean {
-  return HEX_RE.test(value);
-}
 
 interface ColorPickerProps {
   value: string;
