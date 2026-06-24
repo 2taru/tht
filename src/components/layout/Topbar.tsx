@@ -13,6 +13,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { MobileNav } from "./MobileNav";
 import { NotificationsBell } from "./NotificationsBell";
+import { RefreshButton } from "./RefreshButton";
 
 export function Topbar() {
   const { t } = useTranslation();
@@ -27,6 +28,7 @@ export function Topbar() {
         <WorkspaceSwitcher />
       </div>
       <div className="flex items-center gap-1">
+        <RefreshButton />
         <NotificationsBell />
         <ThemeToggle />
         <DropdownMenu>
