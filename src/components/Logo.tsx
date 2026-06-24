@@ -1,17 +1,11 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-/** Знак-монограма: годинник, де літера «t» утворена стрілкою на 12 + перекладиною. */
+/** Літерний знак «tht» у градієнтному бейджі з акцентом-«таймлайном». */
 export function LogoMark({ className }: { className?: string }) {
   const gid = useId();
   return (
-    <svg
-      viewBox="0 0 64 64"
-      fill="none"
-      role="img"
-      aria-label="tht"
-      className={className}
-    >
+    <svg viewBox="0 0 64 64" role="img" aria-label="tht" className={className}>
       <defs>
         <linearGradient
           id={gid}
@@ -26,39 +20,32 @@ export function LogoMark({ className }: { className?: string }) {
         </linearGradient>
       </defs>
       <rect width="64" height="64" rx="15" fill={`url(#${gid})`} />
-      <circle
-        cx="32"
-        cy="33"
-        r="18"
-        stroke="#fff"
-        strokeOpacity="0.3"
-        strokeWidth="2.5"
-      />
-      <g
-        stroke="#fff"
-        strokeOpacity="0.55"
-        strokeWidth="2.5"
-        strokeLinecap="round"
+      <text
+        x="32"
+        y="43"
+        textAnchor="middle"
+        fontFamily="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
+        fontSize="30"
+        fontWeight="700"
+        letterSpacing="-1.5"
+        fill="#fff"
       >
-        <path d="M32 17.5v3" />
-        <path d="M47.5 33h-3" />
-        <path d="M32 48.5v-3" />
-        <path d="M16.5 33h3" />
-      </g>
-      <g stroke="#fff" strokeWidth="5" strokeLinecap="round">
-        <path d="M32 21.5V43" />
-        <path d="M24 28h16" />
-      </g>
+        tht
+      </text>
+      <rect
+        x="17"
+        y="47.5"
+        width="30"
+        height="3"
+        rx="1.5"
+        fill="#fff"
+        fillOpacity="0.5"
+      />
     </svg>
   );
 }
 
-/** Повний логотип: знак + слово «tht». */
+/** Логотип для шапок: знак у читабельному розмірі. */
 export function Logo({ className }: { className?: string }) {
-  return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <LogoMark className="size-7" />
-      <span className="text-lg font-semibold tracking-tight">tht</span>
-    </span>
-  );
+  return <LogoMark className={cn("size-8", className)} />;
 }
