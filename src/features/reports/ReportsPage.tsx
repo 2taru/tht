@@ -274,7 +274,12 @@ export function ReportsPage() {
                       ]}
                       cursor={{ fill: "rgba(0,0,0,0.05)" }}
                     />
-                    <Bar dataKey="hours" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="hours"
+                      fill="var(--chart-1)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={56}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

@@ -346,10 +346,20 @@ export function TimesheetPage() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(-1)}
+            aria-label={t("timesheet.prevPeriod")}
+          >
             <ChevronLeft className="size-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={() => navigate(1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(1)}
+            aria-label={t("timesheet.nextPeriod")}
+          >
             <ChevronRight className="size-4" />
           </Button>
           <Button variant="outline" onClick={goToday}>

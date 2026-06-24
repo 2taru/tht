@@ -33,7 +33,12 @@ export function Topbar() {
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              aria-label={t("common.userMenu")}
+            >
               <Avatar className="size-8">
                 <AvatarFallback>{initial}</AvatarFallback>
               </Avatar>

@@ -9,7 +9,8 @@ export function RouteError() {
 
   const message = isRouteErrorResponse(error)
     ? `${error.status} ${error.statusText}`
-    : error instanceof Error
+    : // Сирий текст помилки показуємо лише в dev — у проді нейтральне повідомлення.
+      import.meta.env.DEV && error instanceof Error
       ? error.message
       : t("errors.generic");
 

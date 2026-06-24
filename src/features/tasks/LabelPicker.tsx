@@ -119,6 +119,7 @@ export function LabelPicker({
             className="size-8 shrink-0"
             onClick={handleCreate}
             disabled={!draft.trim()}
+            aria-label={t("tasks.newLabel")}
           >
             <Plus className="size-4" />
           </Button>
