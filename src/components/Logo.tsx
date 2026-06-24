@@ -49,7 +49,6 @@ export function LogoMark({ className }: { className?: string }) {
         <path d="M32 21.5V43" />
         <path d="M24 28h16" />
       </g>
-      <circle cx="32" cy="33" r="3" fill="#fff" />
     </svg>
   );
 }
