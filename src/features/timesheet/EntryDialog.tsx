@@ -24,7 +24,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/responsive-dialog";
 import {
   Select,
   SelectContent,
@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,9 +119,12 @@ function EntryForm({
   const [start, setStart] = useState(minutesToTimeValue(draft.startMinute));
   const [end, setEnd] = useState(minutesToTimeValue(draft.endMinute));
 
-  // Задачі обраного проєкту (+ поточна, навіть якщо проєкт інший).
+  // Задачі обраного проєкту (без виконаних) + поточна задача запису,
+  // навіть якщо вона з іншого проєкту чи вже виконана.
   const projectTasks = tasks.filter(
-    (tk) => tk.projectId === projectId || tk.id === draft.taskId,
+    (tk) =>
+      (tk.projectId === projectId && tk.status !== "done") ||
+      tk.id === draft.taskId,
   );
 
   const startMinute = timeValueToMinutes(start);
@@ -222,25 +226,21 @@ function EntryForm({
 
         <div className="space-y-2">
           <Label>{t("timesheet.task")}</Label>
-          <Select
+          <SearchableSelect
             value={
-              projectTasks.some((tk) => tk.id === taskId) ? taskId : NO_TASK
+              projectTasks.some((tk) => tk.id === taskId) ? taskId : null
             }
             onValueChange={setTaskId}
+            onClear={() => setTaskId(NO_TASK)}
             disabled={!projectId}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t("timesheet.noTask")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NO_TASK}>{t("timesheet.noTask")}</SelectItem>
-              {projectTasks.map((tk) => (
-                <SelectItem key={tk.id} value={tk.id}>
-                  {tk.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder={t("timesheet.noTask")}
+            searchPlaceholder={t("timesheet.searchTask")}
+            emptyText={t("timesheet.noTaskFound")}
+            options={projectTasks.map((tk) => ({
+              value: tk.id,
+              label: tk.title,
+            }))}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">

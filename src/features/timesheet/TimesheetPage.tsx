@@ -49,7 +49,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/responsive-dialog";
 import { TimeAxis } from "./TimeAxis";
 import { DayColumn } from "./DayColumn";
 import { EntryDialog, type EntryDraft } from "./EntryDialog";
@@ -399,7 +399,7 @@ export function TimesheetPage() {
           <span className="ml-2 font-medium capitalize">{periodLabel}</span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span>
               {t("timesheet.total")}:{" "}
@@ -446,9 +446,23 @@ export function TimesheetPage() {
               <ZoomIn className="size-4" />
             </Button>
           </div>
-          <Button variant="outline" onClick={handleCopyPeriod}>
+          <Button
+            variant="outline"
+            onClick={handleCopyPeriod}
+            aria-label={
+              view === "week" ? t("timesheet.copyWeek") : t("timesheet.copyDay")
+            }
+            title={
+              view === "week" ? t("timesheet.copyWeek") : t("timesheet.copyDay")
+            }
+            className="max-sm:size-9 max-sm:p-0"
+          >
             <CopyPlus className="size-4" />
-            {view === "week" ? t("timesheet.copyWeek") : t("timesheet.copyDay")}
+            <span className="max-sm:hidden">
+              {view === "week"
+                ? t("timesheet.copyWeek")
+                : t("timesheet.copyDay")}
+            </span>
           </Button>
           <Tabs value={view} onValueChange={(v) => setView(v as View)}>
             <TabsList>
