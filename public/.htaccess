@@ -1,0 +1,16 @@
+# SPA-fallback для React Router (Apache/LiteSpeed).
+# Без цього прямі переходи, refresh і OAuth-редіректи на /timesheet, /tasks,
+# /update-password тощо дають 404, бо файлів за такими шляхами на диску немає.
+# Vite копіює цей файл у dist/ автоматично — деплой кладе його в корінь сайту.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Наявні файли й теки (assets, favicon.svg, index.html) віддаємо як є.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Решта маршрутів → index.html (клієнтський роутинг).
+  RewriteRule ^ index.html [L]
+</IfModule>
