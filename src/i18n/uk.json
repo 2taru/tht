@@ -24,7 +24,8 @@
     "reports": "Звіти",
     "projects": "Проєкти",
     "team": "Команда",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "changelog": "Історія змін"
   },
   "workspace": {
     "create": "Створити простір",
@@ -121,7 +122,9 @@
     "copyDay": "Копіювати день",
     "copyWeek": "Копіювати тиждень",
     "copyEmpty": "Немає записів для копіювання",
-    "copied": "Скопійовано: {{created}}, пропущено: {{skipped}}"
+    "copied": "Скопійовано: {{created}}, пропущено: {{skipped}}",
+    "myTimesheet": "Мій таймшит",
+    "viewingUser": "Перегляд таймшита: {{name}} — лише читання"
   },
   "tasks": {
     "title": "Задачі",
@@ -161,7 +164,12 @@
       "low": "Низький",
       "medium": "Середній",
       "high": "Високий"
-    }
+    },
+    "dates": "Дати",
+    "startDate": "Початок",
+    "datesHint": "Початок і дедлайн — обидва опційні.",
+    "badRange": "Початок має бути не пізніше за дедлайн",
+    "fromShort": "з"
   },
   "projects": {
     "title": "Проєкти",
@@ -227,7 +235,17 @@
     "light": "Світла",
     "dark": "Темна",
     "system": "Системна",
-    "saved": "Збережено"
+    "saved": "Збережено",
+    "security": "Безпека",
+    "changePassword": "Змінити пароль",
+    "currentPassword": "Поточний пароль",
+    "newPassword": "Новий пароль",
+    "confirmPassword": "Підтвердіть пароль",
+    "passwordChanged": "Пароль змінено",
+    "passwordMismatch": "Паролі не збігаються",
+    "passwordMin": "Мінімум 6 символів",
+    "passwordRequired": "Введіть поточний пароль",
+    "wrongPassword": "Неправильний поточний пароль"
   },
   "notifications": {
     "title": "Нагадування",
@@ -256,5 +274,9 @@
     "somethingWrong": "Щось пішло не так",
     "generic": "Невідома помилка",
     "reload": "Перезавантажити"
+  },
+  "changelog": {
+    "title": "Історія змін",
+    "subtitle": "Що нового в застосунку за версіями."
   }
 }

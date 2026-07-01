@@ -11,6 +11,7 @@ import {
   type SettingsInput,
 } from "@/queries/settings";
 import { ImportDialog } from "./ImportDialog";
+import { ChangePasswordCard } from "./ChangePasswordCard";
 import { useProfile, useUpdateProfile, type Profile } from "@/queries/profile";
 import type { UserSettings } from "@/types/domain";
 import { minutesToTimeValue, timeValueToMinutes } from "@/lib/time";
@@ -52,6 +53,8 @@ export function SettingsPage() {
           profile={profile}
         />
       )}
+
+      <ChangePasswordCard email={user?.email ?? null} />
 
       <Card>
         <CardHeader>

@@ -162,7 +162,7 @@
 | `workspaces`        | Простір (особистий / команда) | id, name, owner_id                                                                            |
 | `workspace_members` | Членство + ролі               | workspace_id, user_id, role                                                                   |
 | `projects`          | Проєкти                       | workspace_id, name, color, is_archived                                                        |
-| `tasks`             | Задачі                        | workspace_id, project_id, title, status, priority, due_date, position                         |
+| `tasks`             | Задачі                        | workspace_id, project_id, title, status, priority, start_date, due_date, position             |
 | `labels`            | Теги (workspace-scoped)       | workspace_id, name, color                                                                     |
 | `task_labels`       | Зв'язок задача↔тег            | task_id, label_id                                                                             |
 | `time_entries`      | Записи часу (ядро)            | workspace_id, user_id, project_id, task_id, entry_date, start_minute, end_minute, description |
@@ -262,8 +262,10 @@ create table tasks (
   description  text,
   status       task_status   not null default 'todo',
   priority     task_priority not null default 'medium',
-  due_date     date,
+  start_date   date,                                  -- «від» (0012, опційна)
+  due_date     date,                                  -- «до» (дедлайн, опційна)
   position     double precision not null default 0,  -- порядок у колонці
+  -- check (start_date is null or due_date is null or start_date <= due_date)  -- 0012
   created_by   uuid not null references profiles(id),
   assignee_id  uuid references profiles(id),          -- пост-MVP (команди)
   created_at   timestamptz not null default now(),
@@ -831,6 +833,19 @@ Google OAuth: додати redirect-URL продакшн-домену в Supabas
       (`lib/dueDate.ts` + тести — прострочено/сьогодні/скоро), дзвіночок у топбарі зі
       списком і лічильником, кольорова підсвітка дедлайну на картці/у списку задач.
       Пуші/email — лишаються на потім (потрібен сервер/крон).
+- [x] **Діапазон дат задач** (2026-07-01): замість одного дедлайну — опційні
+      `start_date` (від) + `due_date` (до); CHECK `start_date <= due_date`
+      (міграція `0012_task_start_date.sql`). Діалог: два date-інпути з валідацією
+      й `min/max`; картка/список показують діапазон; сповіщення/підсвітка — від `due_date`.
+- [x] **Командний таймшит** (2026-07-01): owner/admin у топбарі таймшита обирає
+      учасника й бачить його записи **лише для читання** (`effectiveUserId` керує
+      query+queryKey; `readOnly` глушить усі мутації в `DayColumn`/`EntryBlock` +
+      банер). RLS уже дозволяв SELECT чужих записів у команді — без змін схеми.
+      Редагування чужих записів адміном (послаблення RLS) — окремим пунктом на потім.
+- [x] **Історія змін (changelog)** (2026-07-01): сторінка `/changelog`
+      (`features/changelog`, `changelogData.ts`), `APP_VERSION` у `lib/version.ts`,
+      лінк із версією внизу сайдбару.
+- [ ] Крос-простірні («загальні») звіти — агрегат по всіх просторах користувача (відкладено)
 - [ ] Експорт Excel (xlsx — лише з безпечного джерела/CDN); налаштовувані Kanban-колонки
 
 ---

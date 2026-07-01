@@ -123,6 +123,7 @@ function TaskForm({
   const [priority, setPriority] = useState<TaskPriority>(
     task?.priority ?? "medium",
   );
+  const [startDate, setStartDate] = useState(task?.startDate ?? "");
   const [dueDate, setDueDate] = useState(task?.dueDate ?? "");
   const [assigneeId, setAssigneeId] = useState(task?.assigneeId ?? NO_ASSIGNEE);
   const [labelIds, setLabelIds] = useState<string[]>(
@@ -132,7 +133,9 @@ function TaskForm({
   const activeProjects = projects.filter(
     (p) => !p.isArchived || p.id === task?.projectId,
   );
-  const canSave = title.trim().length > 0;
+  // Початок не може бути пізніше за дедлайн (дублює CHECK у БД).
+  const badRange = !!startDate && !!dueDate && startDate > dueDate;
+  const canSave = title.trim().length > 0 && !badRange;
 
   async function handleSave() {
     if (!canSave) return;
@@ -142,6 +145,7 @@ function TaskForm({
       projectId: projectId === NO_PROJECT ? null : projectId,
       status,
       priority,
+      startDate: startDate || null,
       dueDate: dueDate || null,
       assigneeId: assigneeId === NO_ASSIGNEE ? null : assigneeId,
     };
@@ -185,39 +189,53 @@ function TaskForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>{t("tasks.project")}</Label>
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_PROJECT}>
-                  {t("tasks.noProject")}
+        <div className="space-y-2">
+          <Label>{t("tasks.project")}</Label>
+          <Select value={projectId} onValueChange={setProjectId}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_PROJECT}>{t("tasks.noProject")}</SelectItem>
+              {activeProjects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="size-3 rounded-full"
+                      style={{ backgroundColor: p.color }}
+                    />
+                    {p.name}
+                  </span>
                 </SelectItem>
-                {activeProjects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="size-3 rounded-full"
-                        style={{ backgroundColor: p.color }}
-                      />
-                      {p.name}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("tasks.dueDate")}</Label>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t("tasks.dates")}</Label>
+          <div className="grid grid-cols-2 gap-3">
             <Input
               type="date"
+              aria-label={t("tasks.startDate")}
+              max={dueDate || undefined}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <Input
+              type="date"
+              aria-label={t("tasks.dueDate")}
+              min={startDate || undefined}
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
             />
           </div>
+          <p className="text-xs text-muted-foreground">
+            {t("tasks.datesHint")}
+          </p>
+          {badRange && (
+            <p className="text-xs text-destructive">{t("tasks.badRange")}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">

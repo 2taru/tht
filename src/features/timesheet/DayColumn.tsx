@@ -37,6 +37,8 @@ interface DayColumnProps {
   workspaceId: string | null;
   userId: string | null;
   queryKey: QueryKey;
+  /** Перегляд чужого таймшита — сітка лише для читання (без створення/зміни). */
+  readOnly?: boolean;
   onCreate: (draft: EntryDraft) => void;
   onEdit: (entry: TimeEntry) => void;
   onRequestMove: (
@@ -80,6 +82,7 @@ export function DayColumn({
   workspaceId,
   userId,
   queryKey,
+  readOnly = false,
   onCreate,
   onEdit,
   onRequestMove,
@@ -309,11 +312,14 @@ export function DayColumn({
   return (
     <div
       ref={ref}
-      className="relative w-full cursor-crosshair touch-none select-none"
+      className={cn(
+        "relative w-full touch-none select-none",
+        readOnly ? "cursor-default" : "cursor-crosshair",
+      )}
       style={{ height }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
+      onPointerDown={readOnly ? undefined : handlePointerDown}
+      onPointerMove={readOnly ? undefined : handlePointerMove}
+      onPointerUp={readOnly ? undefined : handlePointerUp}
     >
       {lines.map((m) => (
         <div
@@ -344,6 +350,7 @@ export function DayColumn({
             dayEnd={dayEnd}
             step={step}
             pxPerMin={pxPerMin}
+            readOnly={readOnly}
             onClick={onEdit}
             onResizeStart={(edge, e) => startResize(entry, edge, e)}
             onMove={handleMove}

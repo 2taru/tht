@@ -10,6 +10,7 @@ import {
   ChevronUp,
   CopyPlus,
   Plus,
+  Users,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
@@ -18,8 +19,10 @@ import { toast } from "sonner";
 import type { Project, TimeEntry } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
+import { useMyRole } from "@/hooks/useMyRole";
 import { useSettings } from "@/queries/settings";
 import { useProjects } from "@/queries/projects";
+import { useMembers } from "@/queries/members";
 import { useTasks } from "@/queries/tasks";
 import {
   entriesKey,
@@ -40,6 +43,13 @@ import {
 import { formatHours, intervalsOverlap } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -78,6 +88,21 @@ export function TimesheetPage() {
   const userId = user?.id ?? null;
   const { workspace } = useActiveWorkspace();
   const workspaceId = workspace?.id ?? null;
+  const { canManage } = useMyRole(workspaceId);
+  const { data: members } = useMembers(workspaceId);
+
+  // Перегляд таймшита іншого учасника (лише owner/admin) — тільки читання.
+  const [viewUserId, setViewUserId] = useState<string | null>(null);
+  // Вибір валідний лише коли це учасник поточного простору (інакше — власний
+  // таймшит); так зміна простору автоматично скидає перегляд без ефекту.
+  const canView =
+    canManage &&
+    !!viewUserId &&
+    (members ?? []).some((m) => m.userId === viewUserId);
+  const effectiveUserId = canView ? viewUserId : userId;
+  const readOnly = effectiveUserId !== userId;
+  const viewedName =
+    members?.find((m) => m.userId === effectiveUserId)?.displayName ?? null;
 
   const { data: settings } = useSettings(userId);
   const cfg = settings ?? DEFAULTS;
@@ -96,14 +121,14 @@ export function TimesheetPage() {
 
   const { data: entries, isLoading } = useEntriesRange(
     workspaceId,
-    userId,
+    effectiveUserId,
     fromISO,
     toISO,
   );
   const { data: projects } = useProjects(workspaceId);
   const { data: tasks } = useTasks(workspaceId);
 
-  const queryKey = entriesKey(workspaceId, userId, fromISO, toISO);
+  const queryKey = entriesKey(workspaceId, effectiveUserId, fromISO, toISO);
   const mutationCtx = { workspaceId, userId, queryKey };
   const createEntry = useCreateEntry(mutationCtx);
   const updateEntry = useUpdateEntry(mutationCtx);
@@ -446,24 +471,50 @@ export function TimesheetPage() {
               <ZoomIn className="size-4" />
             </Button>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleCopyPeriod}
-            aria-label={
-              view === "week" ? t("timesheet.copyWeek") : t("timesheet.copyDay")
-            }
-            title={
-              view === "week" ? t("timesheet.copyWeek") : t("timesheet.copyDay")
-            }
-            className="max-sm:size-9 max-sm:p-0"
-          >
-            <CopyPlus className="size-4" />
-            <span className="max-sm:hidden">
-              {view === "week"
-                ? t("timesheet.copyWeek")
-                : t("timesheet.copyDay")}
-            </span>
-          </Button>
+          {canManage && (members?.length ?? 0) > 1 && (
+            <Select
+              value={effectiveUserId ?? undefined}
+              onValueChange={(v) => setViewUserId(v === userId ? null : v)}
+            >
+              <SelectTrigger className="h-9 w-auto min-w-36 gap-1.5">
+                <Users className="size-4 shrink-0 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(members ?? []).map((mem) => (
+                  <SelectItem key={mem.userId} value={mem.userId}>
+                    {mem.userId === userId
+                      ? t("timesheet.myTimesheet")
+                      : (mem.displayName ?? "—")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {!readOnly && (
+            <Button
+              variant="outline"
+              onClick={handleCopyPeriod}
+              aria-label={
+                view === "week"
+                  ? t("timesheet.copyWeek")
+                  : t("timesheet.copyDay")
+              }
+              title={
+                view === "week"
+                  ? t("timesheet.copyWeek")
+                  : t("timesheet.copyDay")
+              }
+              className="max-sm:size-9 max-sm:p-0"
+            >
+              <CopyPlus className="size-4" />
+              <span className="max-sm:hidden">
+                {view === "week"
+                  ? t("timesheet.copyWeek")
+                  : t("timesheet.copyDay")}
+              </span>
+            </Button>
+          )}
           <Tabs value={view} onValueChange={(v) => setView(v as View)}>
             <TabsList>
               <TabsTrigger value="week">{t("timesheet.week")}</TabsTrigger>
@@ -506,7 +557,17 @@ export function TimesheetPage() {
         )}
       </AnimatePresence>
 
+      {readOnly && (
+        <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
+          <Users className="size-4 shrink-0" />
+          <span>
+            {t("timesheet.viewingUser", { name: viewedName ?? "—" })}
+          </span>
+        </div>
+      )}
+
       {!isLoading &&
+        !readOnly &&
         (projects ?? []).filter((p) => !p.isArchived).length === 0 && (
           <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
             {t("timesheet.onboarding")}{" "}
@@ -569,6 +630,7 @@ export function TimesheetPage() {
                     workspaceId={workspaceId}
                     userId={userId}
                     queryKey={queryKey}
+                    readOnly={readOnly}
                     onCreate={openCreate}
                     onEdit={openEdit}
                     onRequestMove={requestMove}
@@ -583,13 +645,15 @@ export function TimesheetPage() {
         </div>
       )}
 
-      <Button
-        onClick={quickAdd}
-        className="fixed bottom-5 right-5 z-30 size-12 rounded-full shadow-lg lg:hidden"
-        aria-label={t("timesheet.newEntry")}
-      >
-        <Plus className="size-5" />
-      </Button>
+      {!readOnly && (
+        <Button
+          onClick={quickAdd}
+          className="fixed bottom-5 right-5 z-30 size-12 rounded-full shadow-lg lg:hidden"
+          aria-label={t("timesheet.newEntry")}
+        >
+          <Plus className="size-5" />
+        </Button>
+      )}
 
       <EntryDialog
         open={dialogOpen}

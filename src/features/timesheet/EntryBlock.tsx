@@ -26,6 +26,7 @@ interface EntryBlockProps {
   dayEnd: number;
   step: number;
   pxPerMin?: number;
+  readOnly?: boolean;
   onClick: (entry: TimeEntry) => void;
   onResizeStart: (edge: ResizeEdge, e: React.PointerEvent) => void;
   onMove: (
@@ -43,6 +44,7 @@ export function EntryBlock({
   dayEnd,
   step,
   pxPerMin = DEFAULT_PX_PER_MIN,
+  readOnly = false,
   onClick,
   onResizeStart,
   onMove,
@@ -150,29 +152,34 @@ export function EntryBlock({
     }
   }
 
-  const cursor = moving
-    ? "cursor-grabbing"
-    : zone === "move"
-      ? "cursor-grab"
-      : zone === "resizeTop" || zone === "resizeBottom"
-        ? "cursor-ns-resize"
-        : "cursor-pointer";
+  const cursor = readOnly
+    ? "cursor-default"
+    : moving
+      ? "cursor-grabbing"
+      : zone === "move"
+        ? "cursor-grab"
+        : zone === "resizeTop" || zone === "resizeBottom"
+          ? "cursor-ns-resize"
+          : "cursor-pointer";
 
   return (
     <m.div
-      role="button"
-      tabIndex={0}
+      role={readOnly ? undefined : "button"}
+      tabIndex={readOnly ? undefined : 0}
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.15 }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={() => !movingRef.current && setZone(null)}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
+      onPointerDown={readOnly ? undefined : handlePointerDown}
+      onPointerMove={readOnly ? undefined : handlePointerMove}
+      onPointerUp={readOnly ? undefined : handlePointerUp}
+      onPointerLeave={
+        readOnly ? undefined : () => !movingRef.current && setZone(null)
+      }
+      onClick={readOnly ? undefined : handleClick}
+      onKeyDown={readOnly ? undefined : handleKeyDown}
       className={cn(
-        "absolute inset-x-1 overflow-hidden rounded-md border-l-4 px-2 py-1 text-xs text-white shadow-sm outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70",
+        "absolute inset-x-1 overflow-hidden rounded-md border-l-4 px-2 py-1 text-xs text-white shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70",
+        !readOnly && "hover:brightness-110",
         moving ? "z-30 opacity-90 shadow-lg ring-2 ring-white/70" : "z-10",
         cursor,
       )}
@@ -199,18 +206,22 @@ export function EntryBlock({
 
       {/* Грип-іконка перенесення (права зона): праворуч знизу, на малих слотах
           накладається на текст. */}
-      <m.span
-        aria-hidden
-        className="pointer-events-none absolute bottom-1 right-1 z-10"
-        initial={false}
-        animate={{ opacity: zone === "move" || moving ? 0.95 : 0 }}
-        transition={{ duration: 0.12 }}
-      >
-        <GripVertical className="size-4" />
-      </m.span>
+      {!readOnly && (
+        <>
+          <m.span
+            aria-hidden
+            className="pointer-events-none absolute bottom-1 right-1 z-10"
+            initial={false}
+            animate={{ opacity: zone === "move" || moving ? 0.95 : 0 }}
+            transition={{ duration: 0.12 }}
+          >
+            <GripVertical className="size-4" />
+          </m.span>
 
-      <ResizeGrip edge="top" active={zone === "resizeTop"} />
-      <ResizeGrip edge="bottom" active={zone === "resizeBottom"} />
+          <ResizeGrip edge="top" active={zone === "resizeTop"} />
+          <ResizeGrip edge="bottom" active={zone === "resizeBottom"} />
+        </>
+      )}
     </m.div>
   );
 }

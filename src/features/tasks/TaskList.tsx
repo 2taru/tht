@@ -154,7 +154,7 @@ export function TaskList({
                 </span>
                 <span
                   className={cn(
-                    "w-16 text-right text-xs",
+                    "w-28 text-right text-xs",
                     (() => {
                       if (!tk.dueDate) return "text-muted-foreground";
                       const due =
@@ -169,9 +169,16 @@ export function TaskList({
                     })(),
                   )}
                 >
-                  {tk.dueDate
-                    ? format(fromISODate(tk.dueDate), "d MMM", { locale: uk })
-                    : ""}
+                  {(() => {
+                    const fmt = (iso: string) =>
+                      format(fromISODate(iso), "d MMM", { locale: uk });
+                    if (tk.startDate && tk.dueDate)
+                      return `${fmt(tk.startDate)} – ${fmt(tk.dueDate)}`;
+                    if (tk.dueDate) return fmt(tk.dueDate);
+                    if (tk.startDate)
+                      return `${t("tasks.fromShort")} ${fmt(tk.startDate)}`;
+                    return "";
+                  })()}
                 </span>
               </button>
             );

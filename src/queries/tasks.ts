@@ -10,6 +10,7 @@ interface TaskRow {
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
+  start_date: string | null;
   due_date: string | null;
   position: number;
   assignee_id: string | null;
@@ -21,7 +22,7 @@ export interface TaskWithLabels extends Task {
 }
 
 const SELECT =
-  "id, workspace_id, project_id, title, description, status, priority, due_date, position, assignee_id, task_labels(labels(id, name, color, workspace_id))";
+  "id, workspace_id, project_id, title, description, status, priority, start_date, due_date, position, assignee_id, task_labels(labels(id, name, color, workspace_id))";
 
 function toDomain(row: TaskRow): TaskWithLabels {
   return {
@@ -32,6 +33,7 @@ function toDomain(row: TaskRow): TaskWithLabels {
     description: row.description,
     status: row.status,
     priority: row.priority,
+    startDate: row.start_date,
     dueDate: row.due_date,
     position: row.position,
     assigneeId: row.assignee_id,
@@ -67,6 +69,7 @@ export interface TaskInput {
   projectId: string | null;
   status: TaskStatus;
   priority: TaskPriority;
+  startDate: string | null;
   dueDate: string | null;
   assigneeId: string | null;
 }
@@ -88,6 +91,7 @@ export function useCreateTask(
           project_id: input.projectId,
           status: input.status,
           priority: input.priority,
+          start_date: input.startDate,
           due_date: input.dueDate,
           assignee_id: input.assigneeId,
           position: Date.now(), // новий — у кінець колонки
@@ -115,6 +119,7 @@ export function useUpdateTask(workspaceId: string | null) {
           project_id: input.projectId,
           status: input.status,
           priority: input.priority,
+          start_date: input.startDate,
           due_date: input.dueDate,
           assignee_id: input.assigneeId,
         })

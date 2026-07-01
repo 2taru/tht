@@ -36,6 +36,11 @@ const SettingsPage = lazy(() =>
 const TeamPage = lazy(() =>
   import("@/features/team/TeamPage").then((m) => ({ default: m.TeamPage })),
 );
+const ChangelogPage = lazy(() =>
+  import("@/features/changelog/ChangelogPage").then((m) => ({
+    default: m.ChangelogPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -56,6 +61,7 @@ export const router = createBrowserRouter([
           { path: "projects", element: <ProjectsPage /> },
           { path: "team", element: <TeamPage /> },
           { path: "settings", element: <SettingsPage /> },
+          { path: "changelog", element: <ChangelogPage /> },
         ],
       },
     ],

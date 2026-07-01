@@ -82,12 +82,20 @@ export function TaskCard({
             <Badge className={priorityClasses[task.priority]}>
               {t(priorityLabelKey[task.priority])}
             </Badge>
-            {task.dueDate &&
+            {(task.startDate || task.dueDate) &&
               (() => {
                 const due =
-                  task.status === "done"
+                  task.status === "done" || !task.dueDate
                     ? "none"
                     : classifyDue(task.dueDate, todayISO());
+                const fmt = (iso: string) =>
+                  format(fromISODate(iso), "d MMM", { locale: uk });
+                const label =
+                  task.startDate && task.dueDate
+                    ? `${fmt(task.startDate)} – ${fmt(task.dueDate)}`
+                    : task.dueDate
+                      ? fmt(task.dueDate)
+                      : `${t("tasks.fromShort")} ${fmt(task.startDate!)}`;
                 return (
                   <span
                     className={cn(
@@ -100,7 +108,7 @@ export function TaskCard({
                     )}
                   >
                     <CalendarDays className="size-3" />
-                    {format(fromISODate(task.dueDate), "d MMM", { locale: uk })}
+                    {label}
                   </span>
                 );
               })()}
