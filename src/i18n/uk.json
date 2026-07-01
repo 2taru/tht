@@ -278,5 +278,23 @@
   "changelog": {
     "title": "Історія змін",
     "subtitle": "Що нового в застосунку за версіями."
+  },
+  "transfer": {
+    "title": "Перенесення між просторами",
+    "description": "Експортуйте дані простору у файл і імпортуйте їх в інший простір (проєкти, задачі, таймшит).",
+    "exportTitle": "Експорт",
+    "importTitle": "Імпорт",
+    "export": "Експортувати",
+    "import": "Імпортувати",
+    "projectsShort": "Проєкти",
+    "tasksShort": "Задачі",
+    "timesheetShort": "Таймшит",
+    "projects": "Проєкти: {{count}}",
+    "tasks": "Задачі: {{count}}",
+    "timesheet": "Записи часу: {{count}}",
+    "importInto": "Імпорт у поточний простір: {{name}}",
+    "badFile": "Непідтримуваний файл. Потрібен експорт tht (.json).",
+    "exported": "Експортовано: проєктів {{projects}}, задач {{tasks}}, записів {{entries}}",
+    "imported": "Імпортовано: проєктів {{projects}}, задач {{tasks}}, записів {{entries}} (пропущено {{skipped}})"
   }
 }

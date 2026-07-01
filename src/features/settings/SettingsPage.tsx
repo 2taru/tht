@@ -12,6 +12,7 @@ import {
 } from "@/queries/settings";
 import { ImportDialog } from "./ImportDialog";
 import { ChangePasswordCard } from "./ChangePasswordCard";
+import { TransferCard } from "./TransferCard";
 import { useProfile, useUpdateProfile, type Profile } from "@/queries/profile";
 import type { UserSettings } from "@/types/domain";
 import { minutesToTimeValue, timeValueToMinutes } from "@/lib/time";
@@ -53,6 +54,12 @@ export function SettingsPage() {
           profile={profile}
         />
       )}
+
+      <TransferCard
+        workspaceId={workspace?.id ?? null}
+        workspaceName={workspace?.name ?? ""}
+        userId={userId}
+      />
 
       <ChangePasswordCard email={user?.email ?? null} />
 
