@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { m } from "motion/react";
 import { Plus } from "lucide-react";
+import { contentEnter } from "@/lib/motion";
 import type { Project } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
@@ -114,22 +116,31 @@ export function TasksPage() {
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
-      ) : view === "board" ? (
-        <TaskBoard
-          tasks={visibleTasks}
-          projectsById={projectsById}
-          membersById={membersById}
-          workspaceId={workspaceId}
-          onCardClick={openEdit}
-        />
       ) : (
-        <TaskList
-          tasks={visibleTasks}
-          projects={projects ?? []}
-          projectsById={projectsById}
-          membersById={membersById}
-          onRowClick={openEdit}
-        />
+        // Ключ по view — м'який вхід при перемиканні «Дошка/Список».
+        <m.div
+          key={view}
+          {...contentEnter}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          {view === "board" ? (
+            <TaskBoard
+              tasks={visibleTasks}
+              projectsById={projectsById}
+              membersById={membersById}
+              workspaceId={workspaceId}
+              onCardClick={openEdit}
+            />
+          ) : (
+            <TaskList
+              tasks={visibleTasks}
+              projects={projects ?? []}
+              projectsById={projectsById}
+              membersById={membersById}
+              onRowClick={openEdit}
+            />
+          )}
+        </m.div>
       )}
 
       <TaskDialog

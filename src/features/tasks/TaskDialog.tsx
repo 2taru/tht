@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { m } from "motion/react";
 import { X } from "lucide-react";
+import { listItem } from "@/lib/motion";
 import type {
   Label as LabelType,
   Project,
@@ -121,7 +123,11 @@ function TaskForm({
   const setLabels = useSetTaskLabels(workspaceId);
   const { data: loggedMinutes } = useTaskMinutes(task?.id ?? null);
   const { data: comments = [] } = useComments(task?.id ?? null);
-  const addComment = useAddComment({ taskId: task?.id ?? null, workspaceId, userId });
+  const addComment = useAddComment({
+    taskId: task?.id ?? null,
+    workspaceId,
+    userId,
+  });
   const deleteComment = useDeleteComment(task?.id ?? null);
   const [commentText, setCommentText] = useState("");
 
@@ -336,8 +342,12 @@ function TaskForm({
                   {t("tasks.noComments")}
                 </p>
               ) : (
-                comments.map((c) => (
-                  <div key={c.id} className="rounded-lg border p-2.5 text-sm">
+                comments.map((c, i) => (
+                  <m.div
+                    key={c.id}
+                    {...listItem(i)}
+                    className="rounded-lg border p-2.5 text-sm"
+                  >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-medium">
                         {c.authorName ?? "—"}
@@ -353,8 +363,7 @@ function TaskForm({
                             aria-label={t("tasks.deleteComment")}
                             onClick={() => {
                               deleteComment.mutate(c.id, {
-                                onError: () =>
-                                  toast.error(t("common.error")),
+                                onError: () => toast.error(t("common.error")),
                               });
                             }}
                           >
@@ -366,7 +375,7 @@ function TaskForm({
                     <p className="mt-1 whitespace-pre-wrap break-words">
                       {c.body}
                     </p>
-                  </div>
+                  </m.div>
                 ))
               )}
             </div>

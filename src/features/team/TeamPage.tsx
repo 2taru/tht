@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { m } from "motion/react";
 import { Crown, LogOut, Trash2, UserPlus, X } from "lucide-react";
+import { listItem } from "@/lib/motion";
 import { toast } from "sonner";
 import type { Role } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -109,7 +111,10 @@ export function TeamPage() {
     const trimmed = email.trim();
     if (!trimmed) return;
     try {
-      const res = await invite.mutateAsync({ email: trimmed, role: inviteRole });
+      const res = await invite.mutateAsync({
+        email: trimmed,
+        role: inviteRole,
+      });
       setEmail("");
       toast.success(
         res === "invited" ? t("team.invitedPending") : t("team.invited"),
@@ -173,9 +178,10 @@ export function TeamPage() {
                 <p className="mt-4 mb-2 text-sm font-medium">
                   {t("team.pendingTitle")}
                 </p>
-                {invites.map((inv) => (
-                  <div
+                {invites.map((inv, i) => (
+                  <m.div
                     key={inv.id}
+                    {...listItem(i)}
                     className="flex items-center gap-3 rounded-lg border border-dashed p-2.5"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm">
@@ -198,7 +204,7 @@ export function TeamPage() {
                     >
                       <X className="size-4" />
                     </Button>
-                  </div>
+                  </m.div>
                 ))}
               </>
             )}
@@ -216,13 +222,14 @@ export function TeamPage() {
           {isLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : (
-            members?.map((m) => {
-              const isOwnerRow = m.role === "owner";
-              const isSelf = m.userId === user?.id;
-              const name = m.displayName ?? "—";
+            members?.map((mem, i) => {
+              const isOwnerRow = mem.role === "owner";
+              const isSelf = mem.userId === user?.id;
+              const name = mem.displayName ?? "—";
               return (
-                <div
-                  key={m.id}
+                <m.div
+                  key={mem.id}
+                  {...listItem(i)}
                   className="flex items-center gap-3 rounded-lg border p-3"
                 >
                   <Avatar className="size-8">
@@ -240,10 +247,10 @@ export function TeamPage() {
                   </span>
                   {canManage && !isOwnerRow ? (
                     <Select
-                      value={m.role}
+                      value={mem.role}
                       onValueChange={(v) =>
                         updateRole.mutate(
-                          { id: m.id, role: v as Role },
+                          { id: mem.id, role: v as Role },
                           { onError: () => toast.error(t("common.error")) },
                         )
                       }
@@ -261,7 +268,7 @@ export function TeamPage() {
                     </Select>
                   ) : (
                     <Badge variant="secondary">
-                      {t(`team.role.${m.role}`)}
+                      {t(`team.role.${mem.role}`)}
                     </Badge>
                   )}
                   {isOwner && !isSelf && !isOwnerRow && (
@@ -295,7 +302,7 @@ export function TeamPage() {
                           <AlertDialogAction
                             onClick={async () => {
                               try {
-                                await transferOwn.mutateAsync(m.userId);
+                                await transferOwn.mutateAsync(mem.userId);
                                 toast.success(t("team.transferred"));
                               } catch {
                                 toast.error(t("common.error"));
@@ -313,7 +320,7 @@ export function TeamPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        removeMember.mutate(m.id, {
+                        removeMember.mutate(mem.id, {
                           onError: () => toast.error(t("common.error")),
                         })
                       }
@@ -322,7 +329,7 @@ export function TeamPage() {
                       <X className="size-4" />
                     </Button>
                   )}
-                </div>
+                </m.div>
               );
             })
           )}

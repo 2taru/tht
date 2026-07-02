@@ -227,9 +227,7 @@ function EntryForm({
         <div className="space-y-2">
           <Label>{t("timesheet.task")}</Label>
           <SearchableSelect
-            value={
-              projectTasks.some((tk) => tk.id === taskId) ? taskId : null
-            }
+            value={projectTasks.some((tk) => tk.id === taskId) ? taskId : null}
             onValueChange={setTaskId}
             onClear={() => setTaskId(NO_TASK)}
             disabled={!projectId}

@@ -48,7 +48,10 @@ export const INVITE_NOT_AUTHORIZED = "42501";
 export function useInviteMember(workspaceId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { email: string; role: Role }): Promise<string> => {
+    mutationFn: async (input: {
+      email: string;
+      role: Role;
+    }): Promise<string> => {
       const { data, error } = await supabase.rpc("invite_member", {
         ws: workspaceId!,
         member_email: input.email,

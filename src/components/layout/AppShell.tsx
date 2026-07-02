@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { AnimatePresence, m } from "motion/react";
+import { m } from "motion/react";
+import { contentEnter } from "@/lib/motion";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,18 +15,11 @@ export function AppShell() {
         <Topbar />
         <main className="flex-1 overflow-auto p-3 sm:p-6">
           <Suspense fallback={<Skeleton className="h-full min-h-96 w-full" />}>
-            <AnimatePresence mode="wait">
-              <m.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="h-full"
-              >
-                <Outlet />
-              </m.div>
-            </AnimatePresence>
+            {/* Без exit-анімації (mode="wait" додавав мертвий час на кожну
+                навігацію): стара сторінка зникає одразу, нова м'яко входить. */}
+            <m.div key={location.pathname} {...contentEnter} className="h-full">
+              <Outlet />
+            </m.div>
           </Suspense>
         </main>
       </div>

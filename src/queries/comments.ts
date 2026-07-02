@@ -30,7 +30,9 @@ export function useComments(taskId: string | null) {
     queryFn: async (): Promise<TaskComment[]> => {
       const { data, error } = await supabase
         .from("task_comments")
-        .select("id, task_id, user_id, body, created_at, profiles(display_name)")
+        .select(
+          "id, task_id, user_id, body, created_at, profiles(display_name)",
+        )
         .eq("task_id", taskId!)
         .order("created_at", { ascending: true });
       if (error) throw error;

@@ -93,9 +93,7 @@ export function ChangePasswordCard({ email }: { email: string | null }) {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="new-password">
-                {t("settings.newPassword")}
-              </Label>
+              <Label htmlFor="new-password">{t("settings.newPassword")}</Label>
               <Input
                 id="new-password"
                 type="password"

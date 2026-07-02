@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { m } from "motion/react";
 import { Plus } from "lucide-react";
+import { listItem } from "@/lib/motion";
 import type { Project } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
@@ -78,15 +80,16 @@ export function ProjectsPage() {
             {active.length === 0 ? (
               <EmptyState>{t("projects.emptyActive")}</EmptyState>
             ) : (
-              active.map((p) => (
-                <ProjectRow
-                  key={p.id}
-                  workspaceId={workspaceId}
-                  project={p}
-                  currency={currency}
-                  canManage={canManage}
-                  onEdit={openEdit}
-                />
+              active.map((p, i) => (
+                <m.div key={p.id} {...listItem(i)}>
+                  <ProjectRow
+                    workspaceId={workspaceId}
+                    project={p}
+                    currency={currency}
+                    canManage={canManage}
+                    onEdit={openEdit}
+                  />
+                </m.div>
               ))
             )}
           </TabsContent>
@@ -95,15 +98,16 @@ export function ProjectsPage() {
             {archived.length === 0 ? (
               <EmptyState>{t("projects.emptyArchived")}</EmptyState>
             ) : (
-              archived.map((p) => (
-                <ProjectRow
-                  key={p.id}
-                  workspaceId={workspaceId}
-                  project={p}
-                  currency={currency}
-                  canManage={canManage}
-                  onEdit={openEdit}
-                />
+              archived.map((p, i) => (
+                <m.div key={p.id} {...listItem(i)}>
+                  <ProjectRow
+                    workspaceId={workspaceId}
+                    project={p}
+                    currency={currency}
+                    canManage={canManage}
+                    onEdit={openEdit}
+                  />
+                </m.div>
               ))
             )}
           </TabsContent>

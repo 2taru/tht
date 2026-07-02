@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { m } from "motion/react";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
+import { listItem } from "@/lib/motion";
 import type { Project, TaskPriority, TaskStatus } from "@/types/domain";
 import type { TaskWithLabels } from "@/queries/tasks";
 import { fromISODate, todayISO } from "@/lib/dates";
@@ -116,13 +118,14 @@ export function TaskList({
         <EmptyState>{t("tasks.empty")}</EmptyState>
       ) : (
         <div className="divide-y rounded-lg border">
-          {rows.map((tk) => {
+          {rows.map((tk, i) => {
             const project = tk.projectId
               ? projectsById.get(tk.projectId)
               : undefined;
             return (
-              <button
+              <m.button
                 key={tk.id}
+                {...listItem(i)}
                 type="button"
                 onClick={() => onRowClick(tk)}
                 className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50"
@@ -180,7 +183,7 @@ export function TaskList({
                     return "";
                   })()}
                 </span>
-              </button>
+              </m.button>
             );
           })}
         </div>

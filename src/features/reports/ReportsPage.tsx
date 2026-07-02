@@ -21,6 +21,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { m } from "motion/react";
+import { contentEnter } from "@/lib/motion";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useMembers } from "@/queries/members";
@@ -322,7 +324,7 @@ export function ReportsPage() {
       ) : !rows || rows.length === 0 ? (
         <EmptyState>{t("reports.empty")}</EmptyState>
       ) : (
-        <>
+        <m.div {...contentEnter} className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
@@ -488,7 +490,7 @@ export function ReportsPage() {
               </div>
             </CardContent>
           </Card>
-        </>
+        </m.div>
       )}
     </div>
   );

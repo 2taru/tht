@@ -15,6 +15,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
+import { EASE_OUT, POP_SPRING } from "@/lib/motion";
 import { toast } from "sonner";
 import type { Project, TimeEntry } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -304,21 +305,28 @@ export function TimesheetPage() {
     setDialogOpen(true);
   }
 
+  // Напрям останньої навігації по періодах — для напрямного слайду сітки.
+  const [slideDir, setSlideDir] = useState<0 | -1 | 1>(0);
+
   function setView(next: View) {
+    setSlideDir(0); // зміна виду — лише fade, без слайду
     const p = new URLSearchParams(params);
     p.set("view", next);
     p.set("date", date);
     setParams(p, { replace: true });
   }
   function navigate(direction: -1 | 1) {
+    setSlideDir(direction);
     const stepDays = view === "week" ? 7 : 1;
     const p = new URLSearchParams(params);
     p.set("date", addDaysISO(date, direction * stepDays));
     setParams(p, { replace: true });
   }
   function goToday() {
+    const today = todayISO();
+    setSlideDir(today === date ? 0 : today > date ? 1 : -1);
     const p = new URLSearchParams(params);
-    p.set("date", todayISO());
+    p.set("date", today);
     setParams(p, { replace: true });
   }
 
@@ -560,9 +568,7 @@ export function TimesheetPage() {
       {readOnly && (
         <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
           <Users className="size-4 shrink-0" />
-          <span>
-            {t("timesheet.viewingUser", { name: viewedName ?? "—" })}
-          </span>
+          <span>{t("timesheet.viewingUser", { name: viewedName ?? "—" })}</span>
         </div>
       )}
 
@@ -593,66 +599,84 @@ export function TimesheetPage() {
                 pxPerMin={pxPerMin}
               />
             </div>
-            {days.map((d) => {
-              const dayEntries = entriesByDay.get(d) ?? [];
-              const dayMinutes = dayEntries.reduce(
-                (s, e) => s + (e.endMinute - e.startMinute),
-                0,
-              );
-              const isToday = d === todayISO();
-              return (
-                <div
-                  key={d}
-                  ref={(el) => {
-                    if (el) columnRefs.current.set(d, el);
-                    else columnRefs.current.delete(d);
-                  }}
-                  className="flex min-w-28 flex-1 flex-col border-l"
-                >
+            {/* Напрямний слайд колонок при зміні періоду/виду (вісь — окремо,
+                бо transform на предку ламає її position: sticky). */}
+            <m.div
+              key={`${view}:${fromISO}`}
+              className="flex flex-1"
+              initial={{ opacity: 0, x: slideDir * 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.18, ease: EASE_OUT }}
+            >
+              {days.map((d) => {
+                const dayEntries = entriesByDay.get(d) ?? [];
+                const dayMinutes = dayEntries.reduce(
+                  (s, e) => s + (e.endMinute - e.startMinute),
+                  0,
+                );
+                const isToday = d === todayISO();
+                return (
                   <div
-                    className={`flex h-10 flex-col items-center justify-center text-xs ${isToday ? "bg-accent font-semibold" : ""}`}
-                  >
-                    <span className="capitalize text-muted-foreground">
-                      {format(fromISODate(d), "EEE", { locale: uk })}
-                    </span>
-                    <span>{format(fromISODate(d), "d", { locale: uk })}</span>
-                  </div>
-                  <DayColumn
-                    dateISO={d}
-                    entries={dayEntries}
-                    projectsById={projectsById}
-                    settings={{
-                      dayStartMinute: gridStart,
-                      dayEndMinute: gridEnd,
-                      gridStepMinutes: cfg.gridStepMinutes,
+                    key={d}
+                    ref={(el) => {
+                      if (el) columnRefs.current.set(d, el);
+                      else columnRefs.current.delete(d);
                     }}
-                    pxPerMin={pxPerMin}
-                    workspaceId={workspaceId}
-                    userId={userId}
-                    queryKey={queryKey}
-                    readOnly={readOnly}
-                    onCreate={openCreate}
-                    onEdit={openEdit}
-                    onRequestMove={requestMove}
-                  />
-                  <div className="border-t py-1 text-center text-xs font-medium">
-                    {dayMinutes > 0 ? formatHours(dayMinutes) : "—"}
+                    className="flex min-w-28 flex-1 flex-col border-l"
+                  >
+                    <div
+                      className={`flex h-10 flex-col items-center justify-center text-xs ${isToday ? "bg-accent font-semibold" : ""}`}
+                    >
+                      <span className="capitalize text-muted-foreground">
+                        {format(fromISODate(d), "EEE", { locale: uk })}
+                      </span>
+                      <span>{format(fromISODate(d), "d", { locale: uk })}</span>
+                    </div>
+                    <DayColumn
+                      dateISO={d}
+                      entries={dayEntries}
+                      projectsById={projectsById}
+                      settings={{
+                        dayStartMinute: gridStart,
+                        dayEndMinute: gridEnd,
+                        gridStepMinutes: cfg.gridStepMinutes,
+                      }}
+                      pxPerMin={pxPerMin}
+                      workspaceId={workspaceId}
+                      userId={userId}
+                      queryKey={queryKey}
+                      readOnly={readOnly}
+                      onCreate={openCreate}
+                      onEdit={openEdit}
+                      onRequestMove={requestMove}
+                    />
+                    <div className="border-t py-1 text-center text-xs font-medium">
+                      {dayMinutes > 0 ? formatHours(dayMinutes) : "—"}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </m.div>
           </div>
         </div>
       )}
 
       {!readOnly && (
-        <Button
-          onClick={quickAdd}
-          className="fixed bottom-5 right-5 z-30 size-12 rounded-full shadow-lg lg:hidden"
-          aria-label={t("timesheet.newEntry")}
+        <m.div
+          className="fixed bottom-5 right-5 z-30 lg:hidden"
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={POP_SPRING}
         >
-          <Plus className="size-5" />
-        </Button>
+          <Button
+            onClick={quickAdd}
+            className="size-12 rounded-full shadow-lg"
+            aria-label={t("timesheet.newEntry")}
+          >
+            <Plus className="size-5" />
+          </Button>
+        </m.div>
       )}
 
       <EntryDialog

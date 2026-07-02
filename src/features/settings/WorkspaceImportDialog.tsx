@@ -91,8 +91,7 @@ export function WorkspaceImportDialog({
   }
 
   const counts = bundle ? bundleCounts(bundle) : null;
-  const nothingSelected =
-    !scope.projects && !scope.tasks && !scope.entries;
+  const nothingSelected = !scope.projects && !scope.tasks && !scope.entries;
 
   return (
     <Dialog
