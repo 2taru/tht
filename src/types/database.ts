@@ -63,6 +63,71 @@ export type Database = {
           },
         ];
       };
+      notifications: {
+        Row: {
+          actor_id: string | null;
+          created_at: string;
+          id: string;
+          payload: Json;
+          read_at: string | null;
+          task_id: string | null;
+          type: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Insert: {
+          actor_id?: string | null;
+          created_at?: string;
+          id?: string;
+          payload?: Json;
+          read_at?: string | null;
+          task_id?: string | null;
+          type: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Update: {
+          actor_id?: string | null;
+          created_at?: string;
+          id?: string;
+          payload?: Json;
+          read_at?: string | null;
+          task_id?: string | null;
+          type?: string;
+          user_id?: string;
+          workspace_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -115,6 +180,55 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "projects_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      task_comments: {
+        Row: {
+          body: string;
+          created_at: string;
+          id: string;
+          task_id: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          id?: string;
+          task_id: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          id?: string;
+          task_id?: string;
+          user_id?: string;
+          workspace_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_workspace_id_fkey";
+            columns: ["task_id", "workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id", "workspace_id"];
+          },
+          {
+            foreignKeyName: "task_comments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "task_comments_workspace_id_fkey";
             columns: ["workspace_id"];
             isOneToOne: false;
             referencedRelation: "workspaces";
@@ -344,6 +458,48 @@ export type Database = {
           },
         ];
       };
+      workspace_invites: {
+        Row: {
+          created_at: string;
+          email: string;
+          id: string;
+          invited_by: string;
+          role: Database["public"]["Enums"]["role"];
+          workspace_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          id?: string;
+          invited_by: string;
+          role?: Database["public"]["Enums"]["role"];
+          workspace_id: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          id?: string;
+          invited_by?: string;
+          role?: Database["public"]["Enums"]["role"];
+          workspace_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invites_invited_by_fkey";
+            columns: ["invited_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workspace_invites_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       workspace_members: {
         Row: {
           created_at: string;
@@ -423,11 +579,15 @@ export type Database = {
           member_role?: Database["public"]["Enums"]["role"];
           ws: string;
         };
-        Returns: undefined;
+        Returns: string;
       };
       is_member: { Args: { ws: string }; Returns: boolean };
       is_owner_or_admin: { Args: { ws: string }; Returns: boolean };
       shares_workspace: { Args: { other: string }; Returns: boolean };
+      transfer_ownership: {
+        Args: { new_owner: string; ws: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       role: "owner" | "admin" | "member";

@@ -10,6 +10,10 @@ export const MAX_ZOOM_PX_PER_MIN = 6;
 export const ZOOM_MIN = 0.5;
 export const ZOOM_MAX = 4;
 export const ZOOM_FACTOR = 1.3;
+/** Затримка у мс для розпізнавання long-press (touch) до початку drag-у. */
+export const LONG_PRESS_MS = 400;
+/** Мінімальний зсув у px, після якого touch вважається свайпом (не tap/long-press). */
+export const TOUCH_SLOP_PX = 8;
 
 export function minuteToY(
   minute: number,

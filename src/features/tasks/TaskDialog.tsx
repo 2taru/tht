@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 import type {
   Label as LabelType,
   Project,
@@ -17,7 +18,13 @@ import {
 import { useSetTaskLabels } from "@/queries/labels";
 import { useTaskMinutes } from "@/queries/timeEntries";
 import type { Member } from "@/queries/members";
+import {
+  useComments,
+  useAddComment,
+  useDeleteComment,
+} from "@/queries/comments";
 import { formatHours } from "@/lib/time";
+import { formatDateTime } from "@/lib/dates";
 import {
   Dialog,
   DialogContent,
@@ -113,6 +120,10 @@ function TaskForm({
   const remove = useDeleteTask(workspaceId);
   const setLabels = useSetTaskLabels(workspaceId);
   const { data: loggedMinutes } = useTaskMinutes(task?.id ?? null);
+  const { data: comments = [] } = useComments(task?.id ?? null);
+  const addComment = useAddComment({ taskId: task?.id ?? null, workspaceId, userId });
+  const deleteComment = useDeleteComment(task?.id ?? null);
+  const [commentText, setCommentText] = useState("");
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
@@ -315,6 +326,77 @@ function TaskForm({
             rows={3}
           />
         </div>
+
+        {isEdit && (
+          <div className="space-y-2">
+            <Label>{t("tasks.comments")}</Label>
+            <div className="max-h-48 space-y-2 overflow-y-auto">
+              {comments.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("tasks.noComments")}
+                </p>
+              ) : (
+                comments.map((c) => (
+                  <div key={c.id} className="rounded-lg border p-2.5 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium">
+                        {c.authorName ?? "—"}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground">
+                          {formatDateTime(c.createdAt)}
+                        </span>
+                        {(c.userId === userId || canManage) && (
+                          <button
+                            type="button"
+                            className="inline-flex size-6 items-center justify-center rounded-sm opacity-60 hover:opacity-100"
+                            aria-label={t("tasks.deleteComment")}
+                            onClick={() => {
+                              deleteComment.mutate(c.id, {
+                                onError: () =>
+                                  toast.error(t("common.error")),
+                              });
+                            }}
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap break-words">
+                      {c.body}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Textarea
+                rows={2}
+                placeholder={t("tasks.commentPlaceholder")}
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  disabled={!commentText.trim() || addComment.isPending}
+                  onClick={async () => {
+                    const text = commentText.trim();
+                    try {
+                      await addComment.mutateAsync(text);
+                      setCommentText("");
+                    } catch {
+                      toast.error(t("common.error"));
+                    }
+                  }}
+                >
+                  {t("tasks.commentSend")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {isEdit && loggedMinutes !== undefined && loggedMinutes > 0 && (
           <p className="text-sm text-muted-foreground">

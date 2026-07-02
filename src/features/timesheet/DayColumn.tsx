@@ -18,6 +18,7 @@ import {
   minuteToY,
   yToMinute,
 } from "./geometry";
+import { useLongPress } from "./useLongPress";
 import { EntryBlock, type ResizeEdge } from "./EntryBlock";
 import type { EntryDraft } from "./EntryDialog";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,9 @@ export function DayColumn({
   const [pendingDrag, setPendingDrag] = useState<PendingDrag | null>(null);
   const update = useUpdateEntry({ workspaceId, userId, queryKey });
 
+  // Touch: свайп = браузерний скрол, взаємодія — за long-press (деталі в хуку).
+  const lp = useLongPress(ref);
+
   const height = gridHeight(dayStart, dayEnd, pxPerMin);
 
   /** "2 год 15 хв" / "45 хв" — людиночитна тривалість виділення. */
@@ -131,6 +135,7 @@ export function DayColumn({
     edge: ResizeEdge,
     e: React.PointerEvent,
   ) {
+    lp.setActive(true);
     ref.current?.setPointerCapture(e.pointerId);
     document.body.style.setProperty("cursor", "ns-resize");
     setResize({
@@ -143,6 +148,17 @@ export function DayColumn({
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (e.button !== 0 || resize || pendingDrag) return;
+    if (e.pointerType === "touch") {
+      // Не починаємо drag одразу: чекаємо long-press; рух до нього = скрол.
+      const { clientY, pointerId } = e;
+      lp.begin(e, () => {
+        ref.current?.setPointerCapture(pointerId);
+        setPending(null);
+        const m = minuteAtPointer(clientY);
+        setDrag({ startMinute: m, currentMinute: m });
+      });
+      return;
+    }
     setPending(null); // нове виділення скасовує попереднє незбережене
     const m = minuteAtPointer(e.clientY);
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -153,6 +169,7 @@ export function DayColumn({
   function startPendingDrag(mode: PendingDrag["mode"], e: React.PointerEvent) {
     if (!pending) return;
     e.stopPropagation();
+    lp.setActive(true);
     ref.current?.setPointerCapture(e.pointerId);
     document.body.style.setProperty(
       "cursor",
@@ -167,6 +184,7 @@ export function DayColumn({
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (lp.handleMoveWhileWaiting(e)) return;
     const m = minuteAtPointer(e.clientY);
     if (pendingDrag && pending) {
       if (pendingDrag.mode === "top") {
@@ -241,6 +259,15 @@ export function DayColumn({
   }
 
   function handlePointerUp() {
+    lp.setActive(false);
+    const tap = lp.endAsTap();
+    if (tap) {
+      // Touch-тап до спрацювання long-press → слот за замовчуванням.
+      const slot = defaultSlotAt(minuteAtPointer(tap.y));
+      if (slot) setPending(slot);
+      else toast.error(t("timesheet.noFreeSlot"));
+      return;
+    }
     if (pendingDrag) {
       setPendingDrag(null);
       document.body.style.removeProperty("cursor");
@@ -288,6 +315,14 @@ export function DayColumn({
     setPending(null);
   }
 
+  function handlePointerCancel() {
+    lp.reset();
+    setDrag(null);
+    setResize(null);
+    setPendingDrag(null);
+    document.body.style.removeProperty("cursor");
+  }
+
   // Цільовий день і перевірку перетину робить TimesheetPage (день може змінитись).
   function handleMove(
     entry: TimeEntry,
@@ -313,13 +348,14 @@ export function DayColumn({
     <div
       ref={ref}
       className={cn(
-        "relative w-full touch-none select-none",
+        "relative w-full select-none",
         readOnly ? "cursor-default" : "cursor-crosshair",
       )}
       style={{ height }}
       onPointerDown={readOnly ? undefined : handlePointerDown}
       onPointerMove={readOnly ? undefined : handlePointerMove}
       onPointerUp={readOnly ? undefined : handlePointerUp}
+      onPointerCancel={readOnly ? undefined : handlePointerCancel}
     >
       {lines.map((m) => (
         <div
@@ -387,7 +423,7 @@ export function DayColumn({
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
             onPointerDown={(e) => startPendingDrag("move", e)}
             className={cn(
-              "absolute inset-x-1 z-20 flex cursor-grab items-center justify-center rounded-md border-2 text-xs font-semibold",
+              "absolute inset-x-1 z-20 flex cursor-grab touch-none items-center justify-center rounded-md border-2 text-xs font-semibold",
               pendingDrag?.mode === "move" && "cursor-grabbing",
               pendingOverlap
                 ? "border-destructive bg-destructive/20 text-destructive"
@@ -404,7 +440,7 @@ export function DayColumn({
             {/* Ручки ресайзу */}
             <div
               onPointerDown={(e) => startPendingDrag("top", e)}
-              className="absolute inset-x-0 top-0 flex h-2.5 cursor-ns-resize items-center justify-center"
+              className="absolute inset-x-0 top-0 flex h-2.5 cursor-ns-resize touch-none items-center justify-center"
             >
               {pendingTall && (
                 <span className="h-1 w-6 rounded-full bg-primary/80" />
@@ -412,7 +448,7 @@ export function DayColumn({
             </div>
             <div
               onPointerDown={(e) => startPendingDrag("bottom", e)}
-              className="absolute inset-x-0 bottom-0 flex h-2.5 cursor-ns-resize items-center justify-center"
+              className="absolute inset-x-0 bottom-0 flex h-2.5 cursor-ns-resize touch-none items-center justify-center"
             >
               {pendingTall && (
                 <span className="h-1 w-6 rounded-full bg-primary/80" />

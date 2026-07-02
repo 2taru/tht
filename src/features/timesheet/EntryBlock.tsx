@@ -10,6 +10,7 @@ import {
 } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PX_PER_MIN, minuteToY } from "./geometry";
+import { useLongPress } from "./useLongPress";
 
 export type ResizeEdge = "top" | "bottom";
 
@@ -58,6 +59,11 @@ export function EntryBlock({
   const startXRef = useRef(0);
   const draggedRef = useRef(false); // придушити click після drag/resize у цій же взаємодії
 
+  // Touch: тап = редагування, long-press = перенесення; свайп по блоку скролить
+  // сітку. Ресайз на touch не підтримуємо (час змінюється в діалозі).
+  const rootRef = useRef<HTMLDivElement>(null);
+  const lp = useLongPress(rootRef);
+
   const GAP = 3; // вертикальний проміжок між сусідніми записами
   const top =
     minuteToY(entry.startMinute, dayStart, pxPerMin) + offset * pxPerMin;
@@ -83,6 +89,20 @@ export function EntryBlock({
     if (e.button !== 0) return;
     e.stopPropagation(); // не починаємо створення нового запису в колонці
     draggedRef.current = false;
+    if (e.pointerType === "touch") {
+      const { clientX, clientY, pointerId } = e;
+      lp.begin(e, () => {
+        draggedRef.current = true; // long-press = drag, не клік
+        rootRef.current?.setPointerCapture(pointerId);
+        startYRef.current = clientY;
+        startXRef.current = clientX;
+        movingRef.current = true;
+        setMoving(true);
+        setOffset(0);
+        setOffsetX(0);
+      });
+      return;
+    }
     const z = computeZone(e);
     if (z === "resizeTop" || z === "resizeBottom") {
       draggedRef.current = true; // ресайз не має відкривати редагування
@@ -103,6 +123,7 @@ export function EntryBlock({
   }
 
   function handlePointerMove(e: React.PointerEvent) {
+    if (lp.handleMoveWhileWaiting(e)) return;
     if (movingRef.current) {
       const deltaMin = snapToStep(
         (e.clientY - startYRef.current) / pxPerMin,
@@ -118,10 +139,17 @@ export function EntryBlock({
       setOffsetX(e.clientX - startXRef.current);
       return;
     }
-    setZone(computeZone(e));
+    if (e.pointerType !== "touch") setZone(computeZone(e));
   }
 
   function handlePointerUp(e: React.PointerEvent) {
+    if (lp.endAsTap()) {
+      // Touch-тап до спрацювання long-press → редагування запису.
+      draggedRef.current = true; // придушити наступний синтетичний click
+      onClick(entry);
+      return;
+    }
+    lp.setActive(false);
     if (!movingRef.current) return;
     movingRef.current = false;
     setMoving(false);
@@ -134,6 +162,16 @@ export function EntryBlock({
     if (d !== 0 || Math.abs(dx) > 6) {
       draggedRef.current = true; // наступний click — артефакт drag
       onMove(entry, entry.startMinute + d, entry.endMinute + d, e.clientX);
+    }
+  }
+
+  function handlePointerCancel() {
+    lp.reset();
+    if (movingRef.current) {
+      movingRef.current = false;
+      setMoving(false);
+      setOffset(0);
+      setOffsetX(0);
     }
   }
 
@@ -164,6 +202,7 @@ export function EntryBlock({
 
   return (
     <m.div
+      ref={rootRef}
       role={readOnly ? undefined : "button"}
       tabIndex={readOnly ? undefined : 0}
       initial={{ opacity: 0, scale: 0.97 }}
@@ -172,6 +211,7 @@ export function EntryBlock({
       onPointerDown={readOnly ? undefined : handlePointerDown}
       onPointerMove={readOnly ? undefined : handlePointerMove}
       onPointerUp={readOnly ? undefined : handlePointerUp}
+      onPointerCancel={readOnly ? undefined : handlePointerCancel}
       onPointerLeave={
         readOnly ? undefined : () => !movingRef.current && setZone(null)
       }

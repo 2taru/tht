@@ -24,7 +24,11 @@ import {
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useMembers } from "@/queries/members";
-import { useReportEntries, type ReportRow } from "@/queries/reports";
+import {
+  useReportEntries,
+  useReportEntriesAll,
+  type ReportRow,
+} from "@/queries/reports";
 import { useSettings } from "@/queries/settings";
 import { fromISODate, toISODate } from "@/lib/dates";
 import { formatHours, minutesToHours } from "@/lib/time";
@@ -52,7 +56,7 @@ export function ReportsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  const { workspace } = useActiveWorkspace();
+  const { workspace, workspaces } = useActiveWorkspace();
   const workspaceId = workspace?.id ?? null;
 
   const { data: members } = useMembers(workspaceId);
@@ -78,14 +82,29 @@ export function ReportsPage() {
       : memberSel === "all"
         ? null
         : memberSel;
-  const teamWide = effectiveMember === null;
 
-  const { data: rows, isLoading } = useReportEntries(
+  // scope: "this" — поточний простір, "all" — усі мої простори (крос-workspace).
+  const [scope, setScope] = useState<"this" | "all">("this");
+  const teamWide = scope === "this" && effectiveMember === null;
+
+  const workspaceNameMap = useMemo(
+    () => new Map(workspaces.map((w) => [w.id, w.name])),
+    [workspaces],
+  );
+
+  const { data: thisRows, isLoading: thisLoading } = useReportEntries(
     workspaceId,
     effectiveMember,
     from,
     to,
   );
+  const { data: allRows, isLoading: allLoading } = useReportEntriesAll(
+    scope === "all" ? userId : null,
+    from,
+    to,
+  );
+  const rows = scope === "all" ? allRows : thisRows;
+  const isLoading = scope === "all" ? allLoading : thisLoading;
   const { data: settings } = useSettings(userId);
   const currency = settings?.currency ?? "UAH";
 
@@ -123,14 +142,23 @@ export function ReportsPage() {
   const byProject = useMemo(() => {
     const map = new Map<
       string,
-      { name: string; color: string; minutes: number; rate: number | null }
+      {
+        id: string;
+        name: string;
+        color: string;
+        minutes: number;
+        rate: number | null;
+        workspaceId: string;
+      }
     >();
     (rows ?? []).forEach((r) => {
       const cur = map.get(r.projectId) ?? {
+        id: r.projectId,
         name: r.projectName,
         color: r.projectColor,
         minutes: 0,
         rate: r.projectRate,
+        workspaceId: r.workspaceId,
       };
       cur.minutes += r.minutes;
       map.set(r.projectId, cur);
@@ -144,9 +172,27 @@ export function ReportsPage() {
       map.set(r.userId, (map.get(r.userId) ?? 0) + r.minutes),
     );
     return [...map.entries()]
-      .map(([uid, minutes]) => ({ name: membersById.get(uid) ?? "—", minutes }))
+      .map(([uid, minutes]) => ({
+        uid,
+        name: membersById.get(uid) ?? "—",
+        minutes,
+      }))
       .sort((a, b) => b.minutes - a.minutes);
   }, [rows, membersById]);
+
+  const byWorkspace = useMemo(() => {
+    const map = new Map<string, number>();
+    (rows ?? []).forEach((r) =>
+      map.set(r.workspaceId, (map.get(r.workspaceId) ?? 0) + r.minutes),
+    );
+    return [...map.entries()]
+      .map(([wsId, minutes]) => ({
+        wsId,
+        name: workspaceNameMap.get(wsId) ?? "—",
+        minutes,
+      }))
+      .sort((a, b) => b.minutes - a.minutes);
+  }, [rows, workspaceNameMap]);
 
   const totalMinutes = (rows ?? []).reduce((s, r) => s + r.minutes, 0);
   const totalAmount = byProject.reduce(
@@ -156,8 +202,10 @@ export function ReportsPage() {
   const hasBillable = byProject.some((p) => p.rate != null);
 
   function handleExport() {
+    const isAllScope = scope === "all";
     const headers = [
       t("reports.csvDate"),
+      ...(isAllScope ? [t("reports.csvWorkspace")] : []),
       ...(teamWide ? [t("reports.csvMember")] : []),
       t("reports.csvProject"),
       t("reports.csvTask"),
@@ -167,6 +215,7 @@ export function ReportsPage() {
     ];
     const csvRows = (rows ?? []).map((r: ReportRow) => [
       r.date,
+      ...(isAllScope ? [workspaceNameMap.get(r.workspaceId) ?? "—"] : []),
       ...(teamWide ? [membersById.get(r.userId) ?? "—"] : []),
       r.projectName,
       r.taskTitle ?? "",
@@ -222,7 +271,21 @@ export function ReportsPage() {
         <Button variant="secondary" onClick={presetMonth}>
           {t("reports.thisMonth")}
         </Button>
-        {canSeeTeam && (members?.length ?? 0) > 1 && (
+        {workspaces.length > 1 && (
+          <Select
+            value={scope}
+            onValueChange={(v) => setScope(v as "this" | "all")}
+          >
+            <SelectTrigger className="w-52">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="this">{t("reports.scopeThis")}</SelectItem>
+              <SelectItem value="all">{t("reports.scopeAll")}</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+        {scope === "this" && canSeeTeam && (members?.length ?? 0) > 1 && (
           <Select value={memberSel} onValueChange={setMemberSel}>
             <SelectTrigger className="w-48">
               <SelectValue />
@@ -247,6 +310,12 @@ export function ReportsPage() {
           </span>
         </div>
       </div>
+
+      {scope === "all" && (
+        <p className="w-full text-xs text-muted-foreground">
+          {t("reports.allWorkspacesHint")}
+        </p>
+      )}
 
       {isLoading ? (
         <Skeleton className="h-80 w-full" />
@@ -312,7 +381,7 @@ export function ReportsPage() {
                       paddingAngle={2}
                     >
                       {byProject.map((p) => (
-                        <Cell key={p.name} fill={p.color} />
+                        <Cell key={p.id} fill={p.color} />
                       ))}
                     </Pie>
                     <Tooltip
@@ -337,10 +406,32 @@ export function ReportsPage() {
               <CardContent>
                 <div className="divide-y">
                   {byMember.map((m) => (
-                    <div key={m.name} className="flex items-center gap-3 py-2">
+                    <div key={m.uid} className="flex items-center gap-3 py-2">
                       <span className="flex-1 truncate">{m.name}</span>
                       <span className="w-24 text-right font-medium">
                         {formatHours(m.minutes)} {t("common.hours")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {scope === "all" && byWorkspace.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {t("reports.byWorkspace")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="divide-y">
+                  {byWorkspace.map((ws) => (
+                    <div key={ws.wsId} className="flex items-center gap-3 py-2">
+                      <span className="flex-1 truncate">{ws.name}</span>
+                      <span className="w-24 text-right font-medium">
+                        {formatHours(ws.minutes)} {t("common.hours")}
                       </span>
                     </div>
                   ))}
@@ -358,12 +449,16 @@ export function ReportsPage() {
             <CardContent>
               <div className="divide-y">
                 {byProject.map((p) => (
-                  <div key={p.name} className="flex items-center gap-3 py-2">
+                  <div key={p.id} className="flex items-center gap-3 py-2">
                     <span
                       className="size-3 rounded-full"
                       style={{ backgroundColor: p.color }}
                     />
-                    <span className="flex-1">{p.name}</span>
+                    <span className="flex-1">
+                      {scope === "all"
+                        ? `${p.name} · ${workspaceNameMap.get(p.workspaceId) ?? "—"}`
+                        : p.name}
+                    </span>
                     {hasBillable && (
                       <span className="w-28 text-right text-muted-foreground">
                         {p.rate != null

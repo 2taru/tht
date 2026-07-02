@@ -51,7 +51,7 @@ export function TaskCard({
       <div className="flex items-start gap-2">
         <button
           type="button"
-          className="mt-0.5 cursor-grab text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
+          className="mt-0.5 cursor-grab touch-none text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
           aria-label={t("tasks.drag")}
           {...attributes}
           {...listeners}

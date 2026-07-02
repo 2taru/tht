@@ -79,9 +79,9 @@ export function TasksPage() {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{t("tasks.title")}</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {(members?.length ?? 0) > 1 && (
             <Select value={assigneeF} onValueChange={setAssigneeF}>
               <SelectTrigger className="w-44">

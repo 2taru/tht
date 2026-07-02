@@ -1,4 +1,5 @@
 import { addDays, format, parseISO, startOfWeek } from "date-fns";
+import { uk } from "date-fns/locale";
 
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -22,6 +23,11 @@ export function addDaysISO(iso: string, amount: number): string {
 /** Понеділок (або інший weekStart) тижня, що містить дату. */
 export function weekStartISO(iso: string, weekStart: WeekStart): string {
   return toISODate(startOfWeek(parseISO(iso), { weekStartsOn: weekStart }));
+}
+
+/** «5 лип, 14:30» — короткий датетайм для стрічок (коментарі, сповіщення). */
+export function formatDateTime(iso: string): string {
+  return format(new Date(iso), "d MMM, HH:mm", { locale: uk });
 }
 
 /** Масив 7 ISO-дат тижня від weekStart. */

@@ -146,10 +146,10 @@ export function TaskList({
                 <Badge className={priorityClasses[tk.priority]}>
                   {t(priorityLabelKey[tk.priority])}
                 </Badge>
-                <span className="w-24 text-xs text-muted-foreground">
+                <span className="w-24 text-xs text-muted-foreground max-sm:hidden">
                   {t(statusLabelKey[tk.status])}
                 </span>
-                <span className="w-28 truncate text-xs text-muted-foreground">
+                <span className="w-28 truncate text-xs text-muted-foreground max-sm:hidden">
                   {tk.assigneeId ? membersById.get(tk.assigneeId) : ""}
                 </span>
                 <span

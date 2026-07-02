@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Role } from "@/types/domain";
+import { invitesKey } from "./invites";
 
 export interface Member {
   id: string;
@@ -41,23 +42,41 @@ export function useMembers(workspaceId: string | null) {
   });
 }
 
-/** Помилки rpc invite_member: 42501 — не дозволено, P0002 — користувача нема. */
+/** Помилки rpc invite_member: 42501 — не дозволено. */
 export const INVITE_NOT_AUTHORIZED = "42501";
-export const INVITE_USER_NOT_FOUND = "P0002";
 
 export function useInviteMember(workspaceId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { email: string; role: Role }) => {
-      const { error } = await supabase.rpc("invite_member", {
+    mutationFn: async (input: { email: string; role: Role }): Promise<string> => {
+      const { data, error } = await supabase.rpc("invite_member", {
         ws: workspaceId!,
         member_email: input.email,
         member_role: input.role,
       });
       if (error) throw error;
+      return data as string;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: membersKey(workspaceId) });
+      qc.invalidateQueries({ queryKey: invitesKey(workspaceId) });
+    },
+  });
+}
+
+export function useTransferOwnership(workspaceId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (newOwnerUserId: string) => {
+      const { error } = await supabase.rpc("transfer_ownership", {
+        ws: workspaceId!,
+        new_owner: newOwnerUserId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: membersKey(workspaceId) });
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
     },
   });
 }

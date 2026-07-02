@@ -6,10 +6,10 @@ import { uk } from "date-fns/locale";
 import { m } from "motion/react";
 import { Bell } from "lucide-react";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
+import { useActiveWorkspace, setActiveWorkspaceId } from "@/hooks/useActiveWorkspace";
 import { useTasks } from "@/queries/tasks";
 import { classifyDue, dueOrder, type DueStatus } from "@/lib/dueDate";
-import { fromISODate, todayISO } from "@/lib/dates";
+import { formatDateTime, fromISODate, todayISO } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  useUnreadNotifications,
+  useMarkNotificationsRead,
+} from "@/queries/notifications";
 
 const dotClass: Record<Exclude<DueStatus, "none">, string> = {
   overdue: "bg-destructive",
@@ -36,6 +40,8 @@ export function NotificationsBell() {
   const { user } = useAuth();
   const { workspace } = useActiveWorkspace();
   const { data: tasks } = useTasks(workspace?.id ?? null);
+  const { data: notifs } = useUnreadNotifications(user?.id ?? null);
+  const markRead = useMarkNotificationsRead(user?.id ?? null);
 
   // Default "all" — у соло задачі зазвичай без виконавця, тож "mine" сховало б усе.
   const [scope, setScope] = useState<Scope>(
@@ -63,7 +69,7 @@ export function NotificationsBell() {
   const urgent = items.filter(
     (x) => x.due === "overdue" || x.due === "today",
   ).length;
-  const count = items.length;
+  const count = (notifs?.length ?? 0) + items.length;
 
   return (
     <DropdownMenu>
@@ -91,8 +97,49 @@ export function NotificationsBell() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
+        {notifs && notifs.length > 0 && (
+          <>
+            <DropdownMenuLabel className="flex items-center justify-between gap-2">
+              <span>{t("notifications.events")}</span>
+              <button
+                type="button"
+                className="text-xs font-normal text-muted-foreground hover:text-foreground"
+                onClick={(e) => {
+                  e.preventDefault();
+                  markRead.mutate(notifs.map((n) => n.id));
+                }}
+              >
+                {t("notifications.markAllRead")}
+              </button>
+            </DropdownMenuLabel>
+            {notifs.map((n) => (
+              <DropdownMenuItem
+                key={n.id}
+                onClick={() => {
+                  markRead.mutate([n.id]);
+                  if (n.workspaceId !== workspace?.id) {
+                    setActiveWorkspaceId(n.workspaceId);
+                  }
+                  navigate("/tasks?view=list");
+                }}
+                className="flex items-start gap-2"
+              >
+                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">
+                    {t("notifications.assigned")}: {n.title ?? "—"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDateTime(n.createdAt)}
+                  </span>
+                </span>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuLabel className="flex items-center justify-between gap-2">
-          <span>{t("notifications.title")}</span>
+          <span>{t("notifications.deadlines")}</span>
           <div className="flex rounded-md border p-0.5">
             {(["all", "mine"] as const).map((s) => (
               <button
@@ -117,7 +164,9 @@ export function NotificationsBell() {
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-            {t("notifications.empty")}
+            {(notifs?.length ?? 0) === 0
+              ? t("notifications.empty")
+              : t("notifications.emptyDeadlines")}
           </div>
         ) : (
           items.slice(0, 12).map(({ task, due }) => (

@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 export interface ReportRow {
   date: string;
   userId: string;
+  workspaceId: string;
   projectId: string;
   projectName: string;
   projectColor: string;
@@ -16,6 +17,7 @@ export interface ReportRow {
 interface RawRow {
   entry_date: string;
   user_id: string;
+  workspace_id: string;
   start_minute: number;
   end_minute: number;
   description: string | null;
@@ -26,6 +28,25 @@ interface RawRow {
     hourly_rate: number | string | null;
   } | null;
   tasks: { title: string } | null;
+}
+
+const REPORT_SELECT =
+  "entry_date, user_id, workspace_id, start_minute, end_minute, description, project_id, projects(name, color, hourly_rate), tasks(title)";
+
+function toReportRow(r: RawRow): ReportRow {
+  return {
+    date: r.entry_date,
+    userId: r.user_id,
+    workspaceId: r.workspace_id,
+    projectId: r.project_id,
+    projectName: r.projects?.name ?? "—",
+    projectColor: r.projects?.color ?? "#64748b",
+    projectRate:
+      r.projects?.hourly_rate == null ? null : Number(r.projects.hourly_rate),
+    taskTitle: r.tasks?.title ?? null,
+    description: r.description,
+    minutes: r.end_minute - r.start_minute,
+  };
 }
 
 /**
@@ -45,9 +66,7 @@ export function useReportEntries(
     queryFn: async (): Promise<ReportRow[]> => {
       let q = supabase
         .from("time_entries")
-        .select(
-          "entry_date, user_id, start_minute, end_minute, description, project_id, projects(name, color, hourly_rate), tasks(title)",
-        )
+        .select(REPORT_SELECT)
         .eq("workspace_id", workspaceId!)
         .gte("entry_date", fromISO)
         .lte("entry_date", toISO);
@@ -56,20 +75,34 @@ export function useReportEntries(
         .order("entry_date", { ascending: true })
         .order("start_minute", { ascending: true });
       if (error) throw error;
-      return (data as unknown as RawRow[]).map((r) => ({
-        date: r.entry_date,
-        userId: r.user_id,
-        projectId: r.project_id,
-        projectName: r.projects?.name ?? "—",
-        projectColor: r.projects?.color ?? "#64748b",
-        projectRate:
-          r.projects?.hourly_rate == null
-            ? null
-            : Number(r.projects.hourly_rate),
-        taskTitle: r.tasks?.title ?? null,
-        description: r.description,
-        minutes: r.end_minute - r.start_minute,
-      }));
+      return (data as unknown as RawRow[]).map(toReportRow);
+    },
+  });
+}
+
+/**
+ * Записи часу за всіма просторами поточного користувача (крос-workspace звіт).
+ * Фільтр по workspace_id відсутній — RLS сам обмежує видимість членством.
+ */
+export function useReportEntriesAll(
+  userId: string | null,
+  fromISO: string,
+  toISO: string,
+) {
+  return useQuery({
+    queryKey: ["report-all", userId, fromISO, toISO],
+    enabled: !!userId,
+    queryFn: async (): Promise<ReportRow[]> => {
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select(REPORT_SELECT)
+        .eq("user_id", userId!)
+        .gte("entry_date", fromISO)
+        .lte("entry_date", toISO)
+        .order("entry_date", { ascending: true })
+        .order("start_minute", { ascending: true });
+      if (error) throw error;
+      return (data as unknown as RawRow[]).map(toReportRow);
     },
   });
 }

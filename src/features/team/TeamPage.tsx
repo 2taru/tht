@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LogOut, Trash2, UserPlus, X } from "lucide-react";
+import { Crown, LogOut, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Role } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import {
-  INVITE_USER_NOT_FOUND,
   useInviteMember,
   useLeaveWorkspace,
   useMembers,
   useRemoveMember,
+  useTransferOwnership,
   useUpdateMemberRole,
 } from "@/queries/members";
+import { useCancelInvite, useInvites } from "@/queries/invites";
 import { useDeleteWorkspace, useRenameWorkspace } from "@/queries/workspaces";
 import {
   AlertDialog,
@@ -48,9 +49,12 @@ export function TeamPage() {
   const { workspace, selectWorkspace, workspaces } = useActiveWorkspace();
   const workspaceId = workspace?.id ?? null;
   const { data: members, isLoading } = useMembers(workspaceId);
+  const { data: invites } = useInvites(workspaceId);
   const invite = useInviteMember(workspaceId);
+  const cancelInvite = useCancelInvite(workspaceId);
   const updateRole = useUpdateMemberRole(workspaceId);
   const removeMember = useRemoveMember(workspaceId);
+  const transferOwn = useTransferOwnership(workspaceId);
   const renameWs = useRenameWorkspace();
   const deleteWs = useDeleteWorkspace();
   const leaveWs = useLeaveWorkspace();
@@ -105,16 +109,13 @@ export function TeamPage() {
     const trimmed = email.trim();
     if (!trimmed) return;
     try {
-      await invite.mutateAsync({ email: trimmed, role: inviteRole });
+      const res = await invite.mutateAsync({ email: trimmed, role: inviteRole });
       setEmail("");
-      toast.success(t("team.invited"));
-    } catch (err) {
-      const code = (err as { code?: string })?.code;
-      toast.error(
-        code === INVITE_USER_NOT_FOUND
-          ? t("team.userNotFound")
-          : t("common.error"),
+      toast.success(
+        res === "invited" ? t("team.invitedPending") : t("team.invited"),
       );
+    } catch {
+      toast.error(t("common.error"));
     }
   }
 
@@ -167,6 +168,40 @@ export function TeamPage() {
             <p className="mt-2 text-xs text-muted-foreground">
               {t("team.inviteHint")}
             </p>
+            {invites && invites.length > 0 && (
+              <>
+                <p className="mt-4 mb-2 text-sm font-medium">
+                  {t("team.pendingTitle")}
+                </p>
+                {invites.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="flex items-center gap-3 rounded-lg border border-dashed p-2.5"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      {inv.email}
+                    </span>
+                    <Badge variant="secondary">
+                      {t(`team.role.${inv.role}`)}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t("team.cancelInvite")}
+                      onClick={() =>
+                        cancelInvite.mutate(inv.id, {
+                          onSuccess: () =>
+                            toast.success(t("team.inviteCanceled")),
+                          onError: () => toast.error(t("common.error")),
+                        })
+                      }
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+              </>
+            )}
           </CardContent>
         </Card>
       )}
@@ -182,7 +217,7 @@ export function TeamPage() {
             <Skeleton className="h-32 w-full" />
           ) : (
             members?.map((m) => {
-              const isOwner = m.role === "owner";
+              const isOwnerRow = m.role === "owner";
               const isSelf = m.userId === user?.id;
               const name = m.displayName ?? "—";
               return (
@@ -203,7 +238,7 @@ export function TeamPage() {
                       </span>
                     )}
                   </span>
-                  {canManage && !isOwner ? (
+                  {canManage && !isOwnerRow ? (
                     <Select
                       value={m.role}
                       onValueChange={(v) =>
@@ -229,7 +264,51 @@ export function TeamPage() {
                       {t(`team.role.${m.role}`)}
                     </Badge>
                   )}
-                  {canManage && !isOwner && !isSelf && (
+                  {isOwner && !isSelf && !isOwnerRow && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={t("team.transferOwnership")}
+                          title={t("team.transferOwnership")}
+                        >
+                          <Crown className="size-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            {t("team.transferOwnership")}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t("team.transferConfirm", {
+                              name,
+                              ws: workspace?.name ?? "",
+                            })}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>
+                            {t("common.cancel")}
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={async () => {
+                              try {
+                                await transferOwn.mutateAsync(m.userId);
+                                toast.success(t("team.transferred"));
+                              } catch {
+                                toast.error(t("common.error"));
+                              }
+                            }}
+                          >
+                            {t("team.transferOwnership")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                  {canManage && !isOwnerRow && !isSelf && (
                     <Button
                       variant="ghost"
                       size="icon"
