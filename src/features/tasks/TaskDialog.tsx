@@ -77,7 +77,7 @@ export function TaskDialog({
 }: TaskDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="flex max-h-[90dvh] max-w-lg flex-col overflow-hidden">
         {open && (
           <TaskForm
             key={task?.id ?? "new"}
@@ -195,7 +195,7 @@ function TaskForm({
         </DialogTitle>
       </DialogHeader>
 
-      <div className="space-y-4">
+      <div className="-mx-6 min-h-0 flex-1 space-y-4 overflow-y-auto px-6">
         <div className="space-y-2">
           <Label htmlFor="task-title">{t("tasks.titleField")}</Label>
           <Input

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { m } from "motion/react";
 import { Plus } from "lucide-react";
 import { contentEnter } from "@/lib/motion";
-import type { Project } from "@/types/domain";
+import type { Project, TaskPriority, TaskStatus } from "@/types/domain";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import { useProjects } from "@/queries/projects";
@@ -22,8 +22,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TaskBoard } from "./TaskBoard";
-import { TaskList } from "./TaskList";
+import { TaskList, type SortKey } from "./TaskList";
 import { TaskDialog } from "./TaskDialog";
+import {
+  PRIORITIES,
+  STATUSES,
+  priorityLabelKey,
+  statusLabelKey,
+} from "./taskMeta";
 
 type View = "board" | "list";
 
@@ -49,12 +55,22 @@ export function TasksPage() {
   const view = (params.get("view") as View) ?? "board";
 
   const [assigneeF, setAssigneeF] = useState<string>("all");
+  const [statusF, setStatusF] = useState<TaskStatus | "all">("all");
+  const [priorityF, setPriorityF] = useState<TaskPriority | "all">("all");
+  const [projectF, setProjectF] = useState<string>("all");
+  const [sort, setSort] = useState<SortKey>("priority");
+
   const visibleTasks = useMemo(() => {
-    const all = tasks ?? [];
-    if (assigneeF === "all") return all;
-    if (assigneeF === "none") return all.filter((tk) => !tk.assigneeId);
-    return all.filter((tk) => tk.assigneeId === assigneeF);
-  }, [tasks, assigneeF]);
+    return (tasks ?? []).filter((tk) => {
+      if (assigneeF === "none" && tk.assigneeId) return false;
+      if (assigneeF !== "all" && assigneeF !== "none" && tk.assigneeId !== assigneeF)
+        return false;
+      if (statusF !== "all" && tk.status !== statusF) return false;
+      if (priorityF !== "all" && tk.priority !== priorityF) return false;
+      if (projectF !== "all" && tk.projectId !== projectF) return false;
+      return true;
+    });
+  }, [tasks, assigneeF, statusF, priorityF, projectF]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TaskWithLabels | null>(null);
@@ -114,6 +130,48 @@ export function TasksPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <FilterSelect
+          value={statusF}
+          onChange={(v) => setStatusF(v as TaskStatus | "all")}
+          allLabel={t("tasks.allStatuses")}
+          options={STATUSES.map((s) => ({
+            value: s,
+            label: t(statusLabelKey[s]),
+          }))}
+        />
+        <FilterSelect
+          value={priorityF}
+          onChange={(v) => setPriorityF(v as TaskPriority | "all")}
+          allLabel={t("tasks.allPriorities")}
+          options={PRIORITIES.map((p) => ({
+            value: p,
+            label: t(priorityLabelKey[p]),
+          }))}
+        />
+        <FilterSelect
+          value={projectF}
+          onChange={setProjectF}
+          allLabel={t("tasks.allProjects")}
+          options={(projects ?? []).map((p) => ({
+            value: p.id,
+            label: p.name,
+          }))}
+        />
+        {view === "list" && (
+          <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+            <SelectTrigger className="ml-auto w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="priority">{t("tasks.sortPriority")}</SelectItem>
+              <SelectItem value="dueDate">{t("tasks.sortDue")}</SelectItem>
+              <SelectItem value="title">{t("tasks.sortTitle")}</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
       ) : (
@@ -134,9 +192,9 @@ export function TasksPage() {
           ) : (
             <TaskList
               tasks={visibleTasks}
-              projects={projects ?? []}
               projectsById={projectsById}
               membersById={membersById}
+              sort={sort}
               onRowClick={openEdit}
             />
           )}
@@ -154,5 +212,35 @@ export function TasksPage() {
         userId={userId}
       />
     </div>
+  );
+}
+
+interface FilterSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  allLabel: string;
+  options: { value: string; label: string }[];
+}
+
+function FilterSelect({
+  value,
+  onChange,
+  allLabel,
+  options,
+}: FilterSelectProps) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-40">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{allLabel}</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            {o.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
