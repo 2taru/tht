@@ -36,8 +36,15 @@ import { fromISODate, toISODate } from "@/lib/dates";
 import { formatHours, minutesToHours } from "@/lib/time";
 import { billableAmount, formatMoney } from "@/lib/money";
 import { toCsv, downloadCsv } from "@/lib/csv";
+import {
+  downloadXlsx,
+  type Cell as XlsxCell,
+  type Sheet as XlsxSheet,
+} from "@/lib/xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import {
@@ -47,11 +54,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/responsive-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function defaultRange() {
   const now = new Date();
   return { from: toISODate(startOfMonth(now)), to: toISODate(endOfMonth(now)) };
+}
+
+/** Безпечний слаг із назви проєкту для імені файлу (кирилиця дозволена). */
+function projectSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
+
+/** Базове ім'я файлу експорту: `tht-[проєкт-]from_to`. */
+function reportFilename(
+  from: string,
+  to: string,
+  projectName: string | null,
+  ext: string,
+): string {
+  const slug = projectName ? projectSlug(projectName) : "";
+  return `tht-${slug ? `${slug}-` : ""}${from}_${to}.${ext}`;
 }
 
 export function ReportsPage() {
@@ -110,6 +145,42 @@ export function ReportsPage() {
   const { data: settings } = useSettings(userId);
   const currency = settings?.currency ?? "UAH";
 
+  // Діалог опцій Excel-експорту (перед вивантаженням питаємо про розбивку за описом).
+  const [excelDialogOpen, setExcelDialogOpen] = useState(false);
+  const [splitByDesc, setSplitByDesc] = useState(false);
+
+  // Фільтр за проєктом. Опції — з наявних у періоді записів (щоб не було порожніх).
+  const [projectSel, setProjectSel] = useState<string>("all");
+  const projectOptions = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; label: string }>();
+    (rows ?? []).forEach((r) => {
+      if (map.has(r.projectId)) return;
+      const label =
+        scope === "all"
+          ? `${r.projectName} · ${workspaceNameMap.get(r.workspaceId) ?? "—"}`
+          : r.projectName;
+      map.set(r.projectId, { id: r.projectId, name: r.projectName, label });
+    });
+    return [...map.values()].sort((a, b) => a.label.localeCompare(b.label));
+  }, [rows, scope, workspaceNameMap]);
+  // Якщо вибраний проєкт зник (зміна періоду/простору) — трактуємо як «усі».
+  const activeProject =
+    projectSel !== "all" && projectOptions.some((p) => p.id === projectSel)
+      ? projectSel
+      : "all";
+  // Назва обраного проєкту (для назви файлу експорту); null = усі проєкти.
+  const activeProjectName =
+    activeProject === "all"
+      ? null
+      : (projectOptions.find((p) => p.id === activeProject)?.name ?? null);
+  const viewRows = useMemo(
+    () =>
+      activeProject === "all"
+        ? (rows ?? [])
+        : (rows ?? []).filter((r) => r.projectId === activeProject),
+    [rows, activeProject],
+  );
+
   function setRange(nextFrom: string, nextTo: string) {
     const p = new URLSearchParams(params);
     p.set("from", nextFrom);
@@ -130,7 +201,7 @@ export function ReportsPage() {
 
   const byDay = useMemo(() => {
     const map = new Map<string, number>();
-    (rows ?? []).forEach((r) =>
+    viewRows.forEach((r) =>
       map.set(r.date, (map.get(r.date) ?? 0) + r.minutes),
     );
     return [...map.entries()]
@@ -139,7 +210,7 @@ export function ReportsPage() {
         date: format(fromISODate(date), "d MMM", { locale: uk }),
         hours: minutesToHours(minutes),
       }));
-  }, [rows]);
+  }, [viewRows]);
 
   const byProject = useMemo(() => {
     const map = new Map<
@@ -153,7 +224,7 @@ export function ReportsPage() {
         workspaceId: string;
       }
     >();
-    (rows ?? []).forEach((r) => {
+    viewRows.forEach((r) => {
       const cur = map.get(r.projectId) ?? {
         id: r.projectId,
         name: r.projectName,
@@ -166,11 +237,11 @@ export function ReportsPage() {
       map.set(r.projectId, cur);
     });
     return [...map.values()].sort((a, b) => b.minutes - a.minutes);
-  }, [rows]);
+  }, [viewRows]);
 
   const byMember = useMemo(() => {
     const map = new Map<string, number>();
-    (rows ?? []).forEach((r) =>
+    viewRows.forEach((r) =>
       map.set(r.userId, (map.get(r.userId) ?? 0) + r.minutes),
     );
     return [...map.entries()]
@@ -180,11 +251,11 @@ export function ReportsPage() {
         minutes,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-  }, [rows, membersById]);
+  }, [viewRows, membersById]);
 
   const byWorkspace = useMemo(() => {
     const map = new Map<string, number>();
-    (rows ?? []).forEach((r) =>
+    viewRows.forEach((r) =>
       map.set(r.workspaceId, (map.get(r.workspaceId) ?? 0) + r.minutes),
     );
     return [...map.entries()]
@@ -194,16 +265,50 @@ export function ReportsPage() {
         minutes,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-  }, [rows, workspaceNameMap]);
+  }, [viewRows, workspaceNameMap]);
 
-  const totalMinutes = (rows ?? []).reduce((s, r) => s + r.minutes, 0);
+  // Розбивка по задачах (для деталізованого Excel): проєкт → задача → хвилини.
+  interface TaskGroup {
+    projectName: string;
+    taskTitle: string;
+    description: string;
+    minutes: number;
+    rate: number | null;
+    workspaceId: string;
+  }
+  function taskBreakdown(splitByDesc: boolean): TaskGroup[] {
+    const map = new Map<string, TaskGroup>();
+    viewRows.forEach((r) => {
+      const taskTitle = r.taskTitle ?? t("reports.noTask");
+      const description = splitByDesc ? (r.description ?? "") : "";
+      const key = `${r.projectId}|${taskTitle}|${description}`;
+      const cur = map.get(key) ?? {
+        projectName: r.projectName,
+        taskTitle,
+        description,
+        minutes: 0,
+        rate: r.projectRate,
+        workspaceId: r.workspaceId,
+      };
+      cur.minutes += r.minutes;
+      map.set(key, cur);
+    });
+    return [...map.values()].sort(
+      (a, b) =>
+        a.projectName.localeCompare(b.projectName) ||
+        a.taskTitle.localeCompare(b.taskTitle) ||
+        b.minutes - a.minutes,
+    );
+  }
+
+  const totalMinutes = viewRows.reduce((s, r) => s + r.minutes, 0);
   const totalAmount = byProject.reduce(
     (s, p) => s + billableAmount(p.minutes, p.rate),
     0,
   );
   const hasBillable = byProject.some((p) => p.rate != null);
 
-  function handleExport() {
+  function handleExportCsv() {
     const isAllScope = scope === "all";
     const headers = [
       t("reports.csvDate"),
@@ -215,7 +320,7 @@ export function ReportsPage() {
       t("reports.csvHours"),
       t("reports.csvAmount"),
     ];
-    const csvRows = (rows ?? []).map((r: ReportRow) => [
+    const csvRows = viewRows.map((r: ReportRow) => [
       r.date,
       ...(isAllScope ? [workspaceNameMap.get(r.workspaceId) ?? "—"] : []),
       ...(teamWide ? [membersById.get(r.userId) ?? "—"] : []),
@@ -227,22 +332,180 @@ export function ReportsPage() {
         ? billableAmount(r.minutes, r.projectRate).toFixed(2)
         : "",
     ]);
-    downloadCsv(`tht-${from}_${to}.csv`, toCsv(headers, csvRows));
+    downloadCsv(
+      reportFilename(from, to, activeProjectName, "csv"),
+      toCsv(headers, csvRows),
+    );
+  }
+
+  function handleExportExcel(splitByDesc: boolean) {
+    const isAllScope = scope === "all";
+    const hours = (min: number) => Number((min / 60).toFixed(2));
+    const amount = (min: number, rate: number | null) =>
+      rate != null ? Number(billableAmount(min, rate).toFixed(2)) : null;
+
+    // ── Аркуш 1 «Задачі»: години на кожну задачу (+ опис, якщо splitByDesc) + разом.
+    const groups = taskBreakdown(splitByDesc);
+    const taskHeader: XlsxCell[] = [];
+    if (isAllScope) taskHeader.push(t("reports.csvWorkspace"));
+    taskHeader.push(t("reports.csvProject"), t("reports.csvTask"));
+    if (splitByDesc) taskHeader.push(t("reports.csvDescription"));
+    taskHeader.push(t("reports.csvHours"));
+    if (hasBillable) taskHeader.push(t("reports.csvAmount"));
+
+    const taskRows: XlsxCell[][] = groups.map((g) => {
+      const row: XlsxCell[] = [];
+      if (isAllScope) row.push(workspaceNameMap.get(g.workspaceId) ?? "—");
+      row.push(g.projectName, g.taskTitle);
+      if (splitByDesc) row.push(g.description);
+      row.push(hours(g.minutes));
+      if (hasBillable) row.push(amount(g.minutes, g.rate));
+      return row;
+    });
+    // Індекси колонок (для графіка й підсумку) залежать від опційних колонок.
+    const catCol = isAllScope ? 2 : 1; // колонка «Задача»
+    const hoursCol = taskHeader.length - (hasBillable ? 2 : 1);
+
+    // Підсумковий рядок «Разом» — «Разом» кладемо в колонку «Задача».
+    const totalRow: XlsxCell[] = new Array(taskHeader.length).fill("");
+    totalRow[catCol] = t("reports.total");
+    totalRow[hoursCol] = hours(totalMinutes);
+    if (hasBillable) totalRow[taskHeader.length - 1] = Number(totalAmount.toFixed(2));
+
+    const taskSheetRows = [taskHeader, ...taskRows, totalRow];
+    const taskColWidths = taskHeader.map((h, i) =>
+      i === catCol || (splitByDesc && i === catCol + 1)
+        ? { width: 34 }
+        : typeof h === "string" && h.length > 8
+          ? { width: 16 }
+          : { width: 12 },
+    );
+
+    // Графік — лише коли є що показувати (щоб не малювати порожній блок).
+    const dataFirstRow = 2;
+    const dataLastRow = 1 + groups.length;
+    const taskSheet: XlsxSheet = {
+      name: t("reports.sheetTasks"),
+      rows: taskSheetRows,
+      columns: taskColWidths,
+      totalRow: true,
+      chart:
+        groups.length > 0
+          ? {
+              title: t("reports.chartTitle"),
+              categoryCol: catCol,
+              valueCol: hoursCol,
+              seriesNameRow: 1,
+              dataFirstRow,
+              dataLastRow,
+              anchor: {
+                fromCol: 0,
+                fromRow: dataLastRow + 2,
+                toCol: Math.max(6, taskHeader.length + 2),
+                toRow: dataLastRow + 2 + Math.min(24, Math.max(10, groups.length + 3)),
+              },
+            }
+          : undefined,
+    };
+
+    // ── Аркуш 2 «Деталі»: усі записи періоду (з колонкою опису завжди).
+    const detailHeader: XlsxCell[] = [
+      t("reports.csvDate"),
+      ...(isAllScope ? [t("reports.csvWorkspace")] : []),
+      ...(teamWide ? [t("reports.csvMember")] : []),
+      t("reports.csvProject"),
+      t("reports.csvTask"),
+      t("reports.csvDescription"),
+      t("reports.csvHours"),
+      ...(hasBillable ? [t("reports.csvAmount")] : []),
+    ];
+    const detailRows: XlsxCell[][] = viewRows.map((r) => [
+      r.date,
+      ...(isAllScope ? [workspaceNameMap.get(r.workspaceId) ?? "—"] : []),
+      ...(teamWide ? [membersById.get(r.userId) ?? "—"] : []),
+      r.projectName,
+      r.taskTitle ?? "",
+      r.description ?? "",
+      hours(r.minutes),
+      ...(hasBillable ? [amount(r.minutes, r.projectRate)] : []),
+    ]);
+    const detailSheet: XlsxSheet = {
+      name: t("reports.sheetDetails"),
+      rows: [detailHeader, ...detailRows],
+      columns: detailHeader.map((h) =>
+        typeof h === "string" && h === t("reports.csvDescription")
+          ? { width: 34 }
+          : { width: 14 },
+      ),
+    };
+
+    downloadXlsx(reportFilename(from, to, activeProjectName, "xlsx"), [
+      taskSheet,
+      detailSheet,
+    ]);
   }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-2xl font-semibold">{t("reports.title")}</h1>
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          disabled={!rows || rows.length === 0}
-        >
-          <Download className="size-4" />
-          {t("reports.export")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExportCsv}
+            disabled={viewRows.length === 0}
+          >
+            <Download className="size-4" />
+            {t("reports.export")}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setExcelDialogOpen(true)}
+            disabled={viewRows.length === 0}
+          >
+            <Download className="size-4" />
+            {t("reports.exportExcel")}
+          </Button>
+        </div>
       </div>
+
+      <Dialog open={excelDialogOpen} onOpenChange={setExcelDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("reports.excelOptionsTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("reports.excelOptionsDesc")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-between gap-4 py-2">
+            <Label htmlFor="split-desc" className="font-normal">
+              {t("reports.splitByDescription")}
+            </Label>
+            <Switch
+              id="split-desc"
+              checked={splitByDesc}
+              onCheckedChange={setSplitByDesc}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setExcelDialogOpen(false)}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                handleExportExcel(splitByDesc);
+                setExcelDialogOpen(false);
+              }}
+            >
+              <Download className="size-4" />
+              {t("reports.exportExcel")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
@@ -305,6 +568,21 @@ export function ReportsPage() {
             </SelectContent>
           </Select>
         )}
+        {projectOptions.length > 1 && (
+          <Select value={activeProject} onValueChange={setProjectSel}>
+            <SelectTrigger className="w-52">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("reports.allProjects")}</SelectItem>
+              {projectOptions.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <div className="ml-auto text-sm text-muted-foreground">
           {t("reports.total")}:{" "}
           <span className="font-semibold text-foreground">
@@ -321,7 +599,7 @@ export function ReportsPage() {
 
       {isLoading ? (
         <Skeleton className="h-80 w-full" />
-      ) : !rows || rows.length === 0 ? (
+      ) : viewRows.length === 0 ? (
         <EmptyState>{t("reports.empty")}</EmptyState>
       ) : (
         <m.div {...contentEnter} className="space-y-6">

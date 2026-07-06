@@ -18,10 +18,31 @@ export interface TransferScope {
   entries: boolean;
 }
 
+/**
+ * Опційний діапазон дат для експорту (обидві межі включно, формат YYYY-MM-DD).
+ * `null` у полі — межа відсутня. Порожній діапазон = експорт усього.
+ * Застосовується лише до задач (за `created_at`) і записів часу (за `entry_date`);
+ * проєкти й теги завжди експортуються повністю (задачі/записи на них посилаються).
+ */
+export interface TransferRange {
+  from: string | null;
+  to: string | null;
+}
+
 /** Задачі й записи тягнуть за собою проєкти — тож проєкти вмикаються примусово. */
 function normalizeScope(s: TransferScope): TransferScope {
   const projects = s.projects || s.tasks || s.entries;
   return { projects, tasks: s.tasks, entries: s.entries };
+}
+
+/** Наступний день (ексклюзивна верхня межа для timestamptz `created_at`). */
+function nextDay(date: string): string {
+  const d = new Date(`${date}T00:00:00`);
+  d.setDate(d.getDate() + 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 // ── Експорт ──────────────────────────────────────────────────────────────────
@@ -31,9 +52,38 @@ export function useExportWorkspace(workspaceId: string | null) {
     mutationFn: async (input: {
       workspaceName: string;
       scope: TransferScope;
+      range?: TransferRange;
     }): Promise<WorkspaceBundle> => {
       const scope = normalizeScope(input.scope);
+      const range = input.range ?? { from: null, to: null };
       const ws = workspaceId!;
+
+      let taskQuery = scope.tasks
+        ? supabase
+            .from("tasks")
+            .select(
+              "id, project_id, title, description, status, priority, start_date, due_date, position, task_labels(label_id)",
+            )
+            .eq("workspace_id", ws)
+            .order("position", { ascending: true })
+        : null;
+      // Задачі фільтруємо за датою СТВОРЕННЯ (created_at — timestamptz).
+      if (taskQuery && range.from) taskQuery = taskQuery.gte("created_at", range.from);
+      if (taskQuery && range.to)
+        taskQuery = taskQuery.lt("created_at", nextDay(range.to));
+
+      let entryQuery = scope.entries
+        ? supabase
+            .from("time_entries")
+            .select(
+              "project_id, task_id, entry_date, start_minute, end_minute, description",
+            )
+            .eq("workspace_id", ws)
+            .order("entry_date", { ascending: true })
+        : null;
+      // Записи часу фільтруємо за датою запису (entry_date — date, обидві межі включно).
+      if (entryQuery && range.from) entryQuery = entryQuery.gte("entry_date", range.from);
+      if (entryQuery && range.to) entryQuery = entryQuery.lte("entry_date", range.to);
 
       const [projRes, labelRes, taskRes, entryRes] = await Promise.all([
         scope.projects
@@ -49,24 +99,8 @@ export function useExportWorkspace(workspaceId: string | null) {
               .select("id, name, color")
               .eq("workspace_id", ws)
           : Promise.resolve({ data: [], error: null }),
-        scope.tasks
-          ? supabase
-              .from("tasks")
-              .select(
-                "id, project_id, title, description, status, priority, start_date, due_date, position, task_labels(label_id)",
-              )
-              .eq("workspace_id", ws)
-              .order("position", { ascending: true })
-          : Promise.resolve({ data: [], error: null }),
-        scope.entries
-          ? supabase
-              .from("time_entries")
-              .select(
-                "project_id, task_id, entry_date, start_minute, end_minute, description",
-              )
-              .eq("workspace_id", ws)
-              .order("entry_date", { ascending: true })
-          : Promise.resolve({ data: [], error: null }),
+        taskQuery ?? Promise.resolve({ data: [], error: null }),
+        entryQuery ?? Promise.resolve({ data: [], error: null }),
       ]);
       for (const r of [projRes, labelRes, taskRes, entryRes]) {
         if (r.error) throw r.error;
