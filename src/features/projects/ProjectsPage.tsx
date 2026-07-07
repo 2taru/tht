@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { StickyBar } from "@/components/layout/StickyBar";
 import { ProjectRow } from "./ProjectRow";
 import { ProjectDialog } from "./ProjectDialog";
 
@@ -49,13 +50,13 @@ export function ProjectsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
+      <StickyBar className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("projects.title")}</h1>
         <Button onClick={openCreate}>
           <Plus className="size-4" />
           {t("projects.new")}
         </Button>
-      </div>
+      </StickyBar>
 
       {isLoading ? (
         <div className="space-y-2">

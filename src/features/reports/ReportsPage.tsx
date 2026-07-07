@@ -63,6 +63,7 @@ import {
   DialogTitle,
 } from "@/components/ui/responsive-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StickyBar } from "@/components/layout/StickyBar";
 
 function defaultRange() {
   const now = new Date();
@@ -447,6 +448,7 @@ export function ReportsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <StickyBar className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-2xl font-semibold">{t("reports.title")}</h1>
         <div className="flex flex-wrap gap-2">
@@ -590,6 +592,7 @@ export function ReportsPage() {
           </span>
         </div>
       </div>
+      </StickyBar>
 
       {scope === "all" && (
         <p className="w-full text-xs text-muted-foreground">

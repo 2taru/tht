@@ -162,6 +162,8 @@
     "sortPriority": "За пріоритетом",
     "sortDue": "За дедлайном",
     "sortTitle": "За назвою",
+    "columns": "Стовпці",
+    "columnsTitle": "Показати стовпці",
     "status": {
       "todo": "До виконання",
       "in_progress": "В роботі",
