@@ -185,31 +185,33 @@ export function TasksPage() {
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
-      ) : (
-        // Ключ по view — м'який вхід при перемиканні «Дошка/Список».
+      ) : view === "board" ? (
+        // Дошка — робоча поверхня фіксованої висоти: колонки скролять всередині.
         <m.div
-          key={view}
+          key="board"
           {...contentEnter}
           className="flex min-h-0 flex-1 flex-col"
         >
-          {view === "board" ? (
-            <TaskBoard
-              tasks={visibleTasks}
-              projectsById={projectsById}
-              membersById={membersById}
-              workspaceId={workspaceId}
-              onCardClick={openEdit}
-            />
-          ) : (
-            <TaskList
-              tasks={visibleTasks}
-              projectsById={projectsById}
-              membersById={membersById}
-              sort={sort}
-              columns={columns}
-              onRowClick={openEdit}
-            />
-          )}
+          <TaskBoard
+            tasks={visibleTasks}
+            projectsById={projectsById}
+            membersById={membersById}
+            workspaceId={workspaceId}
+            onCardClick={openEdit}
+          />
+        </m.div>
+      ) : (
+        // Список росте за вмістом — вертикальний скрол лишаємо на `main`, щоб
+        // липкий заголовок працював, а таблиця не мала власного скрол-боксу.
+        <m.div key="list" {...contentEnter} className="shrink-0">
+          <TaskList
+            tasks={visibleTasks}
+            projectsById={projectsById}
+            membersById={membersById}
+            sort={sort}
+            columns={columns}
+            onRowClick={openEdit}
+          />
         </m.div>
       )}
 
