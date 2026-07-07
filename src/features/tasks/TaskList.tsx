@@ -177,7 +177,7 @@ export function TaskList({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="rounded-lg border">
       <div className="min-w-[560px]">
         {/* Шапка колонок */}
         <div className="flex items-center gap-3 border-b bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground">

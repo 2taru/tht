@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { m } from "motion/react";
-import { pageFade } from "@/lib/motion";
+import { contentEnter } from "@/lib/motion";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +17,7 @@ export function AppShell() {
           <Suspense fallback={<Skeleton className="h-full min-h-96 w-full" />}>
             {/* Без exit-анімації (mode="wait" додавав мертвий час на кожну
                 навігацію): стара сторінка зникає одразу, нова м'яко входить. */}
-            <m.div key={location.pathname} {...pageFade} className="h-full">
+            <m.div key={location.pathname} {...contentEnter} className="h-full">
               <Outlet />
             </m.div>
           </Suspense>

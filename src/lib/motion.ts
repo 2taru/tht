@@ -15,17 +15,6 @@ export const contentEnter = {
   transition: { duration: 0.18, ease: EASE_OUT },
 } as const;
 
-/**
- * Перехід між сторінками (обгортка `Outlet` в AppShell) — ЛИШЕ opacity, без `y`.
- * Анімація `y` лишає `transform` на елементі, а трансформований предок ламає
- * `position: sticky` всередині (липкі заголовки сторінок «протікали» б фоном).
- */
-export const pageFade = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  transition: { duration: 0.18, ease: EASE_OUT },
-} as const;
-
 /** Поступова поява рядків списку; затримка обмежена, щоб хвіст не тягнувся. */
 export function listItem(index: number) {
   return {

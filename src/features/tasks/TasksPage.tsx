@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StickyBar } from "@/components/layout/StickyBar";
 import { TaskBoard } from "./TaskBoard";
 import { TaskList, type SortKey } from "./TaskList";
 import { TaskColumnsMenu } from "./TaskColumnsMenu";
@@ -101,7 +100,7 @@ export function TasksPage() {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <StickyBar className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold">{t("tasks.title")}</h1>
           <div className="flex flex-wrap items-center gap-3">
@@ -181,7 +180,7 @@ export function TasksPage() {
             </>
           )}
         </div>
-      </StickyBar>
+      </div>
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
@@ -201,9 +200,9 @@ export function TasksPage() {
           />
         </m.div>
       ) : (
-        // Список росте за вмістом — вертикальний скрол лишаємо на `main`, щоб
-        // липкий заголовок працював, а таблиця не мала власного скрол-боксу.
-        <m.div key="list" {...contentEnter} className="shrink-0">
+        // Список скролить у власній області (обидві осі), заголовок сторінки
+        // лишається зверху як звичайний flex-рядок.
+        <m.div key="list" {...contentEnter} className="min-h-0 flex-1 overflow-auto">
           <TaskList
             tasks={visibleTasks}
             projectsById={projectsById}
