@@ -108,19 +108,43 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
   const [step, setStep] = useState(String(settings.gridStepMinutes));
   const [weekStart, setWeekStart] = useState(String(settings.weekStart));
   const [currency, setCurrency] = useState(settings.currency);
+  const [workDayHours, setWorkDayHours] = useState(
+    String(settings.workDayMinutes / 60),
+  );
+  const [workDays, setWorkDays] = useState<number[]>(settings.workDays);
 
   const startMinute = timeValueToMinutes(start);
   const endMinute = timeValueToMinutes(end);
   const boundsOk = startMinute < endMinute;
+  const workDayMinutes = Math.round(Number(workDayHours) * 60);
+  const workNormOk =
+    Number.isFinite(workDayMinutes) &&
+    workDayMinutes > 0 &&
+    workDayMinutes <= 1440;
+  const canSave = boundsOk && workNormOk;
+
+  // Порядок днів для тоглів — від першого дня тижня (0=нд…6=сб).
+  const dayOrder =
+    Number(weekStart) === 0
+      ? [0, 1, 2, 3, 4, 5, 6]
+      : [1, 2, 3, 4, 5, 6, 0];
+
+  function toggleDay(d: number) {
+    setWorkDays((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+    );
+  }
 
   async function handleSave() {
-    if (!boundsOk) return;
+    if (!canSave) return;
     const input: SettingsInput = {
       dayStartMinute: startMinute,
       dayEndMinute: endMinute,
       gridStepMinutes: Number(step),
       weekStart: Number(weekStart),
       currency,
+      workDayMinutes,
+      workDays: [...workDays].sort((a, b) => a - b),
     };
     try {
       await Promise.all([
@@ -251,8 +275,59 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("settings.workNorm")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {t("settings.workNormHint")}
+          </p>
+          <div className="max-w-xs space-y-2">
+            <Label htmlFor="work-day-hours">
+              {t("settings.workDayHours")}
+            </Label>
+            <Input
+              id="work-day-hours"
+              type="number"
+              min={0.5}
+              max={24}
+              step={0.5}
+              value={workDayHours}
+              onChange={(e) => setWorkDayHours(e.target.value)}
+            />
+            {!workNormOk && (
+              <p className="text-sm text-destructive">
+                {t("settings.workDayHoursError")}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>{t("settings.workDaysLabel")}</Label>
+            <div className="flex flex-wrap gap-2">
+              {dayOrder.map((d) => {
+                const active = workDays.includes(d);
+                return (
+                  <Button
+                    key={d}
+                    type="button"
+                    variant={active ? "default" : "outline"}
+                    size="sm"
+                    className="w-12"
+                    aria-pressed={active}
+                    onClick={() => toggleDay(d)}
+                  >
+                    {t(`settings.dow.${d}`)}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={!boundsOk}>
+        <Button onClick={handleSave} disabled={!canSave}>
           {t("common.save")}
         </Button>
       </div>

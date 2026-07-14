@@ -33,6 +33,7 @@ import {
 } from "@/queries/reports";
 import { useSettings } from "@/queries/settings";
 import { fromISODate, toISODate } from "@/lib/dates";
+import { plannedMinutes, workDaysInRange } from "@/lib/workhours";
 import { formatHours, minutesToHours } from "@/lib/time";
 import { billableAmount, formatMoney } from "@/lib/money";
 import { toCsv, downloadCsv } from "@/lib/csv";
@@ -302,6 +303,18 @@ export function ReportsPage() {
   }
 
   const totalMinutes = viewRows.reduce((s, r) => s + r.minutes, 0);
+
+  // Планова норма за період — лише коли дивимось власні години користувача
+  // (норма береться з налаштувань поточного користувача, тож для чужих годин
+  // чи по всій команді вона не має сенсу).
+  const showPlan =
+    activeProject === "all" && (scope === "all" || effectiveMember === userId);
+  const workDays = settings?.workDays ?? [];
+  const workDayMinutes = settings?.workDayMinutes ?? 0;
+  const plannedMin = plannedMinutes(from, to, workDays, workDayMinutes);
+  const workDayCount = workDaysInRange(from, to, workDays);
+  const planDiffMin = totalMinutes - plannedMin;
+
   const totalAmount = byProject.reduce(
     (s, p) => s + billableAmount(p.minutes, p.rate),
     0,
@@ -771,6 +784,71 @@ export function ReportsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {showPlan && settings && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("reports.plan")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground">
+                      {t("reports.planWorked")}
+                    </div>
+                    <div className="text-xl font-semibold">
+                      {formatHours(totalMinutes)} {t("common.hours")}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">
+                      {t("reports.planNorm")}
+                    </div>
+                    <div className="text-xl font-semibold">
+                      {formatHours(plannedMin)} {t("common.hours")}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {t("reports.planWorkDays", { count: workDayCount })}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">
+                      {t("reports.planDiff")}
+                    </div>
+                    <div
+                      className={`text-xl font-semibold ${
+                        planDiffMin >= 0
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-destructive"
+                      }`}
+                    >
+                      {planDiffMin >= 0 ? "+" : "−"}
+                      {formatHours(Math.abs(planDiffMin))} {t("common.hours")}
+                    </div>
+                  </div>
+                </div>
+                {plannedMin > 0 && (
+                  <div>
+                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full ${
+                          totalMinutes >= plannedMin
+                            ? "bg-emerald-500"
+                            : "bg-[var(--chart-1)]"
+                        }`}
+                        style={{
+                          width: `${Math.min(100, Math.round((totalMinutes / plannedMin) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="mt-1 text-right text-xs text-muted-foreground">
+                      {Math.round((totalMinutes / plannedMin) * 100)}%
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </m.div>
       )}
       </div>

@@ -22,6 +22,10 @@ export interface UserSettings {
   theme: string;
   locale: string;
   currency: string;
+  /** Тривалість робочого дня у хвилинах (норма). */
+  workDayMinutes: number;
+  /** Робочі дні тижня: 0 = неділя … 6 = субота (як JS getDay()). */
+  workDays: number[];
 }
 
 export interface Project {

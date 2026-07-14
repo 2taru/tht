@@ -427,6 +427,8 @@ export type Database = {
           theme: string;
           user_id: string;
           week_start: number;
+          work_day_minutes: number;
+          work_days: number[];
         };
         Insert: {
           currency?: string;
@@ -437,6 +439,8 @@ export type Database = {
           theme?: string;
           user_id: string;
           week_start?: number;
+          work_day_minutes?: number;
+          work_days?: number[];
         };
         Update: {
           currency?: string;
@@ -447,6 +451,8 @@ export type Database = {
           theme?: string;
           user_id?: string;
           week_start?: number;
+          work_day_minutes?: number;
+          work_days?: number[];
         };
         Relationships: [
           {
