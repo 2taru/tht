@@ -67,7 +67,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function defaultRange() {
   const now = new Date();
-  return { from: toISODate(startOfMonth(now)), to: toISODate(endOfMonth(now)) };
+  return { from: toISODate(startOfMonth(now)), to: toISODate(now) };
 }
 
 /** Безпечний слаг із назви проєкту для імені файлу (кирилиця дозволена). */
