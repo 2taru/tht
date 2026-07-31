@@ -4,11 +4,10 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import {
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   CopyPlus,
+  EllipsisVertical,
   Plus,
   Users,
   ZoomIn,
@@ -52,6 +51,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -119,6 +126,24 @@ export function TimesheetPage() {
   );
   const fromISO = days[0];
   const toISO = days[days.length - 1];
+
+  // Приховати вихідні: у виді «тиждень» лишаємо лише робочі дні (з налаштувань
+  // норми). Запит лишається на весь тиждень — ховаємо тільки колонки.
+  const [hideNonWork, setHideNonWork] = useState(
+    () => localStorage.getItem("tht.hideNonWorkDays") === "1",
+  );
+  function toggleHideNonWork(next: boolean) {
+    setHideNonWork(next);
+    localStorage.setItem("tht.hideNonWorkDays", next ? "1" : "0");
+  }
+  const visibleDays = useMemo(() => {
+    if (view !== "week" || !hideNonWork) return days;
+    const workDays = settings?.workDays ?? [1, 2, 3, 4, 5];
+    const filtered = days.filter((d) =>
+      workDays.includes(fromISODate(d).getDay()),
+    );
+    return filtered.length > 0 ? filtered : days; // порожньо — не ховаємо все
+  }, [days, view, hideNonWork, settings?.workDays]);
 
   const { data: entries, isLoading } = useEntriesRange(
     workspaceId,
@@ -433,52 +458,12 @@ export function TimesheetPage() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span>
-              {t("timesheet.total")}:{" "}
-              <span className="font-semibold text-foreground">
-                {formatHours(totalMinutes)} {t("common.hours")}
-              </span>
+          <span className="text-sm text-muted-foreground">
+            {t("timesheet.total")}:{" "}
+            <span className="font-semibold text-foreground">
+              {formatHours(totalMinutes)} {t("common.hours")}
             </span>
-            {perProject.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1 px-2"
-                onClick={() => setShowBreakdown((v) => !v)}
-                aria-expanded={showBreakdown}
-              >
-                {showBreakdown ? t("timesheet.less") : t("timesheet.more")}
-                {showBreakdown ? (
-                  <ChevronUp className="size-3.5" />
-                ) : (
-                  <ChevronDown className="size-3.5" />
-                )}
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center rounded-md border">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 rounded-r-none"
-              onClick={() => changeZoom(zoom / ZOOM_FACTOR)}
-              disabled={zoom <= ZOOM_MIN + 0.001}
-              aria-label={t("timesheet.zoomOut")}
-            >
-              <ZoomOut className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 rounded-l-none border-l"
-              onClick={() => changeZoom(zoom * ZOOM_FACTOR)}
-              disabled={zoom >= ZOOM_MAX - 0.001}
-              aria-label={t("timesheet.zoomIn")}
-            >
-              <ZoomIn className="size-4" />
-            </Button>
-          </div>
+          </span>
           {canManage && (members?.length ?? 0) > 1 && (
             <Select
               value={effectiveUserId ?? undefined}
@@ -499,36 +484,82 @@ export function TimesheetPage() {
               </SelectContent>
             </Select>
           )}
-          {!readOnly && (
-            <Button
-              variant="outline"
-              onClick={handleCopyPeriod}
-              aria-label={
-                view === "week"
-                  ? t("timesheet.copyWeek")
-                  : t("timesheet.copyDay")
-              }
-              title={
-                view === "week"
-                  ? t("timesheet.copyWeek")
-                  : t("timesheet.copyDay")
-              }
-              className="max-sm:size-9 max-sm:p-0"
-            >
-              <CopyPlus className="size-4" />
-              <span className="max-sm:hidden">
-                {view === "week"
-                  ? t("timesheet.copyWeek")
-                  : t("timesheet.copyDay")}
-              </span>
-            </Button>
-          )}
           <Tabs value={view} onValueChange={(v) => setView(v as View)}>
             <TabsList>
               <TabsTrigger value="week">{t("timesheet.week")}</TabsTrigger>
               <TabsTrigger value="day">{t("timesheet.day")}</TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label={t("timesheet.options")}
+                title={t("timesheet.options")}
+              >
+                <EllipsisVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {view === "week" && (
+                <DropdownMenuCheckboxItem
+                  checked={hideNonWork}
+                  onCheckedChange={toggleHideNonWork}
+                >
+                  {t("timesheet.hideWeekends")}
+                </DropdownMenuCheckboxItem>
+              )}
+              {perProject.length > 0 && (
+                <DropdownMenuCheckboxItem
+                  checked={showBreakdown}
+                  onCheckedChange={setShowBreakdown}
+                >
+                  {t("timesheet.breakdown")}
+                </DropdownMenuCheckboxItem>
+              )}
+              {(view === "week" || perProject.length > 0) && (
+                <DropdownMenuSeparator />
+              )}
+              <div className="flex items-center justify-between px-2 py-1.5">
+                <span className="text-sm">{t("timesheet.zoom")}</span>
+                <div className="flex items-center rounded-md border">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 rounded-r-none"
+                    onClick={() => changeZoom(zoom / ZOOM_FACTOR)}
+                    disabled={zoom <= ZOOM_MIN + 0.001}
+                    aria-label={t("timesheet.zoomOut")}
+                  >
+                    <ZoomOut className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 rounded-l-none border-l"
+                    onClick={() => changeZoom(zoom * ZOOM_FACTOR)}
+                    disabled={zoom >= ZOOM_MAX - 0.001}
+                    aria-label={t("timesheet.zoomIn")}
+                  >
+                    <ZoomIn className="size-4" />
+                  </Button>
+                </div>
+              </div>
+              {!readOnly && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCopyPeriod}>
+                    <CopyPlus className="size-4" />
+                    {view === "week"
+                      ? t("timesheet.copyWeek")
+                      : t("timesheet.copyDay")}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -608,7 +639,7 @@ export function TimesheetPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.18, ease: EASE_OUT }}
             >
-              {days.map((d) => {
+              {visibleDays.map((d) => {
                 const dayEntries = entriesByDay.get(d) ?? [];
                 const dayMinutes = dayEntries.reduce(
                   (s, e) => s + (e.endMinute - e.startMinute),
