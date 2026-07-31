@@ -28,6 +28,7 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent
         side="left"
+        showCloseButton={false}
         className="w-56 bg-sidebar p-0 text-sidebar-foreground"
       >
         <SheetTitle className="sr-only">Навігація</SheetTitle>
