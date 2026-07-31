@@ -12,10 +12,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { MobileNav } from "./MobileNav";
+import { SidebarToggle } from "./SidebarToggle";
 import { NotificationsBell } from "./NotificationsBell";
 import { RefreshButton } from "./RefreshButton";
 
-export function Topbar() {
+export function Topbar({
+  collapsed,
+  onToggleSidebar,
+}: {
+  collapsed: boolean;
+  onToggleSidebar: () => void;
+}) {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
 
@@ -25,6 +32,7 @@ export function Topbar() {
     <header className="flex h-14 items-center justify-between border-b px-2 sm:px-4">
       <div className="flex items-center gap-1">
         <MobileNav />
+        <SidebarToggle collapsed={collapsed} onToggle={onToggleSidebar} />
         <WorkspaceSwitcher />
       </div>
       <div className="flex items-center gap-1">

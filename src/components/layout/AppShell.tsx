@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { m } from "motion/react";
 import { contentEnter } from "@/lib/motion";
@@ -8,11 +8,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppShell() {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("tht.sidebarCollapsed") === "1",
+  );
+  function toggleSidebar() {
+    setCollapsed((c) => {
+      const next = !c;
+      localStorage.setItem("tht.sidebarCollapsed", next ? "1" : "0");
+      return next;
+    });
+  }
   return (
     <div className="flex h-dvh overflow-hidden">
-      <Sidebar />
+      <Sidebar collapsed={collapsed} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar collapsed={collapsed} onToggleSidebar={toggleSidebar} />
         <main className="flex-1 overflow-auto p-3 sm:p-6">
           <Suspense fallback={<Skeleton className="h-full min-h-96 w-full" />}>
             {/* Без exit-анімації (mode="wait" додавав мертвий час на кожну
