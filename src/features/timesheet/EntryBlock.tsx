@@ -1,6 +1,12 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { m } from "motion/react";
-import { GripVertical } from "lucide-react";
+import {
+  ArrowUpDown,
+  GripVertical,
+  Move,
+  MousePointerClick,
+} from "lucide-react";
 import type { Project, TimeEntry } from "@/types/domain";
 import {
   clampMinute,
@@ -9,6 +15,12 @@ import {
   snapToStep,
 } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DEFAULT_PX_PER_MIN, minuteToY } from "./geometry";
 import { useLongPress } from "./useLongPress";
 
@@ -50,6 +62,7 @@ export function EntryBlock({
   onResizeStart,
   onMove,
 }: EntryBlockProps) {
+  const { t } = useTranslation();
   const [zone, setZone] = useState<Zone>(null);
   const [offset, setOffset] = useState(0); // вертикальний зсув у хвилинах під час перенесення
   const [offsetX, setOffsetX] = useState(0); // горизонтальний зсув у px (інший день)
@@ -70,7 +83,16 @@ export function EntryBlock({
   const rawHeight = (entry.endMinute - entry.startMinute) * pxPerMin;
   const heightPx = Math.max(rawHeight - GAP, 6);
   const color = project?.color ?? "#64748b";
-  const compact = heightPx < 34;
+
+  const desc = entry.description?.trim() ?? "";
+  const hasDesc = desc.length > 0;
+  const timeRange = `${minutesToLabel(entry.startMinute)}–${minutesToLabel(entry.endMinute)}`;
+  const hoursLabel = formatHours(entry.endMinute - entry.startMinute);
+  // Малий слот із описом: ховаємо назву проєкту (колір і так її кодує), щоб
+  // звільнити рядок під опис. Проєкт лишається, якщо опису нема або є висота.
+  const showProject = !hasDesc || heightPx >= 44;
+  // Другий рядок: опис (завжди, коли є) або часовий діапазон (лише за наявності місця).
+  const showSecondLine = showProject && (hasDesc || heightPx >= 32);
 
   function computeZone(e: React.PointerEvent): Zone {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -200,7 +222,7 @@ export function EntryBlock({
           ? "cursor-ns-resize"
           : "cursor-pointer";
 
-  return (
+  const block = (
     <m.div
       ref={rootRef}
       role={readOnly ? undefined : "button"}
@@ -231,17 +253,16 @@ export function EntryBlock({
         borderColor: "rgba(0,0,0,0.25)",
       }}
     >
-      <div className="flex items-center justify-between gap-1 font-medium">
-        <span className="truncate">{project?.name ?? "—"}</span>
-        <span className="shrink-0 opacity-90">
-          {formatHours(entry.endMinute - entry.startMinute)}
+      <div className="flex items-start justify-between gap-1 font-medium">
+        <span
+          className={cn("min-w-0", showProject ? "truncate" : "break-words")}
+        >
+          {showProject ? (project?.name ?? "—") : desc}
         </span>
+        <span className="shrink-0 opacity-90">{hoursLabel}</span>
       </div>
-      {!compact && (
-        <div className="truncate opacity-90">
-          {entry.description ||
-            `${minutesToLabel(entry.startMinute)}–${minutesToLabel(entry.endMinute)}`}
-        </div>
+      {showSecondLine && (
+        <div className="break-words opacity-90">{desc || timeRange}</div>
       )}
 
       {/* Грип-іконка перенесення (права зона): праворуч знизу, на малих слотах
@@ -263,6 +284,56 @@ export function EntryBlock({
         </>
       )}
     </m.div>
+  );
+
+  // Тултип — лише в інтерактивному режимі; у readOnly показуємо чистий блок.
+  if (readOnly) return block;
+
+  return (
+    <TooltipProvider delayDuration={450} disableHoverableContent>
+      <Tooltip>
+        <TooltipTrigger asChild>{block}</TooltipTrigger>
+        <TooltipContent
+          side="right"
+          align="start"
+          className="max-w-72 space-y-2 px-3 py-2 text-left"
+        >
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 font-medium">
+              <span
+                aria-hidden
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <span className="min-w-0 break-words">
+                {project?.name ?? "—"}
+              </span>
+            </div>
+            <div className="opacity-70">
+              {timeRange} · {hoursLabel} {t("timesheet.hoursShort")}
+            </div>
+            {hasDesc && <div className="break-words">{desc}</div>}
+          </div>
+          <div className="space-y-1.5 border-t border-current/15 pt-2 text-[11px] leading-snug opacity-75">
+            <p className="mb-0.5 font-medium tracking-wide uppercase opacity-80">
+              {t("timesheet.controls")}
+            </p>
+            <p className="flex items-start gap-1.5">
+              <Move className="mt-px size-3 shrink-0" />
+              <span>{t("timesheet.hintMove")}</span>
+            </p>
+            <p className="flex items-start gap-1.5">
+              <ArrowUpDown className="mt-px size-3 shrink-0" />
+              <span>{t("timesheet.hintResize")}</span>
+            </p>
+            <p className="flex items-start gap-1.5">
+              <MousePointerClick className="mt-px size-3 shrink-0" />
+              <span>{t("timesheet.hintEdit")}</span>
+            </p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
