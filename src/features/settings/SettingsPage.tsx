@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
+import { format } from "date-fns";
+import { uk } from "date-fns/locale";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import {
@@ -10,11 +12,17 @@ import {
   useUpdateSettings,
   type SettingsInput,
 } from "@/queries/settings";
+import {
+  useDayOffs,
+  useRemoveDayOff,
+  useSetDayOff,
+} from "@/queries/dayOffs";
 import { ImportDialog } from "./ImportDialog";
 import { ChangePasswordCard } from "./ChangePasswordCard";
 import { TransferCard } from "./TransferCard";
 import { useProfile, useUpdateProfile, type Profile } from "@/queries/profile";
 import type { UserSettings } from "@/types/domain";
+import { fromISODate, todayISO } from "@/lib/dates";
 import { minutesToTimeValue, timeValueToMinutes } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +62,8 @@ export function SettingsPage() {
           profile={profile}
         />
       )}
+
+      <DayOffsCard workspaceId={workspace?.id ?? null} userId={userId} />
 
       <TransferCard
         workspaceId={workspace?.id ?? null}
@@ -332,5 +342,121 @@ function SettingsForm({ userId, settings, profile }: SettingsFormProps) {
         </Button>
       </div>
     </div>
+  );
+}
+
+interface DayOffsCardProps {
+  workspaceId: string | null;
+  userId: string | null;
+}
+
+function DayOffsCard({ workspaceId, userId }: DayOffsCardProps) {
+  const { t } = useTranslation();
+  const { data: dayOffs } = useDayOffs(workspaceId, userId);
+  const setDayOff = useSetDayOff();
+  const removeDayOff = useRemoveDayOff();
+
+  const [date, setDate] = useState(todayISO());
+  const [note, setNote] = useState("");
+
+  async function handleAdd() {
+    if (!workspaceId || !userId || !date) return;
+    try {
+      await setDayOff.mutateAsync({
+        workspaceId,
+        userId,
+        date,
+        note: note.trim() ? note.trim() : null,
+      });
+      setNote("");
+      toast.success(t("settings.saved"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
+  async function handleRemove(id: string) {
+    if (!workspaceId || !userId) return;
+    try {
+      await removeDayOff.mutateAsync({ id, workspaceId, userId });
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{t("settings.daysOff")}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {t("settings.daysOffHint")}
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="day-off-date">{t("settings.dayOffDate")}</Label>
+            <Input
+              id="day-off-date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-auto"
+            />
+          </div>
+          <div className="min-w-48 flex-1 space-y-2">
+            <Label htmlFor="day-off-note">{t("settings.dayOffNote")}</Label>
+            <Input
+              id="day-off-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={t("settings.dayOffNote")}
+            />
+          </div>
+          <Button onClick={handleAdd} disabled={!date || setDayOff.isPending}>
+            {t("settings.addDayOff")}
+          </Button>
+        </div>
+
+        {dayOffs && dayOffs.length > 0 ? (
+          <ul className="divide-y rounded-lg border">
+            {dayOffs.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center justify-between gap-3 px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <div className="text-sm font-medium capitalize">
+                    {format(fromISODate(d.date), "d MMMM yyyy", {
+                      locale: uk,
+                    })}
+                  </div>
+                  {d.note && (
+                    <div className="truncate text-xs text-muted-foreground">
+                      {d.note}
+                    </div>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label={t("settings.removeDayOff")}
+                  title={t("settings.removeDayOff")}
+                  onClick={() => handleRemove(d.id)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+            {t("settings.noDaysOff")}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -58,6 +58,16 @@ export interface Label {
   color: string;
 }
 
+/** Персональний день-вихідний (свято/відпустка/лікарняний) — зменшує норму. */
+export interface DayOff {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  /** Локальна ISO-дата 'YYYY-MM-DD'. */
+  date: string;
+  note: string | null;
+}
+
 export interface TimeEntry {
   id: string;
   workspaceId: string;

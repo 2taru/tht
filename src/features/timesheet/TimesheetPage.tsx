@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import {
+  CalendarOff,
   ChevronLeft,
   ChevronRight,
   CopyPlus,
@@ -32,6 +33,7 @@ import {
   useEntriesRange,
   useUpdateEntry,
 } from "@/queries/timeEntries";
+import { useDayOffs, useRemoveDayOff, useSetDayOff } from "@/queries/dayOffs";
 import { findFreeSlot } from "./freeSlot";
 import {
   addDaysISO,
@@ -153,6 +155,25 @@ export function TimesheetPage() {
   );
   const { data: projects } = useProjects(workspaceId);
   const { data: tasks } = useTasks(workspaceId);
+
+  // Персональні вихідні (свято/відпустка) видимого діапазону — приглушують
+  // колонку в заголовку й тілі сітки, зменшують норму у звітах.
+  const { data: dayOffs } = useDayOffs(workspaceId, effectiveUserId, fromISO, toISO);
+  const dayOffSet = useMemo(
+    () => new Set((dayOffs ?? []).map((d) => d.date)),
+    [dayOffs],
+  );
+  const setDayOff = useSetDayOff();
+  const removeDayOff = useRemoveDayOff();
+  function toggleDayOff(d: string) {
+    if (!workspaceId || !userId || readOnly) return;
+    const existing = (dayOffs ?? []).find((x) => x.date === d);
+    if (existing) {
+      removeDayOff.mutate({ id: existing.id, workspaceId, userId });
+    } else {
+      setDayOff.mutate({ workspaceId, userId, date: d, note: null });
+    }
+  }
 
   const queryKey = entriesKey(workspaceId, effectiveUserId, fromISO, toISO);
   const mutationCtx = { workspaceId, userId, queryKey };
@@ -646,6 +667,7 @@ export function TimesheetPage() {
                   0,
                 );
                 const isToday = d === todayISO();
+                const isDayOff = dayOffSet.has(d);
                 return (
                   <div
                     key={d}
@@ -656,12 +678,46 @@ export function TimesheetPage() {
                     className="flex min-w-28 flex-1 flex-col border-l"
                   >
                     <div
-                      className={`flex h-10 flex-col items-center justify-center text-xs ${isToday ? "bg-accent font-semibold" : ""}`}
+                      className={`relative flex h-10 flex-col items-center justify-center text-xs ${
+                        isDayOff
+                          ? "bg-muted/60 text-muted-foreground"
+                          : isToday
+                            ? "bg-accent font-semibold"
+                            : ""
+                      }`}
                     >
                       <span className="capitalize text-muted-foreground">
                         {format(fromISODate(d), "EEE", { locale: uk })}
                       </span>
                       <span>{format(fromISODate(d), "d", { locale: uk })}</span>
+                      {(!readOnly || isDayOff) && (
+                        <button
+                          type="button"
+                          className={`absolute right-0.5 top-0.5 flex size-5 items-center justify-center rounded-sm transition-colors ${
+                            isDayOff
+                              ? "text-foreground"
+                              : "text-muted-foreground/40 hover:text-muted-foreground"
+                          } ${readOnly ? "cursor-default" : "cursor-pointer"}`}
+                          title={t(
+                            isDayOff
+                              ? "timesheet.unmarkDayOff"
+                              : "timesheet.markDayOff",
+                          )}
+                          aria-label={t(
+                            isDayOff
+                              ? "timesheet.unmarkDayOff"
+                              : "timesheet.markDayOff",
+                          )}
+                          aria-pressed={isDayOff}
+                          disabled={readOnly}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!readOnly) toggleDayOff(d);
+                          }}
+                        >
+                          <CalendarOff className="size-3.5" />
+                        </button>
+                      )}
                     </div>
                     <DayColumn
                       dateISO={d}
@@ -677,6 +733,7 @@ export function TimesheetPage() {
                       userId={userId}
                       queryKey={queryKey}
                       readOnly={readOnly}
+                      isDayOff={isDayOff}
                       onCreate={openCreate}
                       onEdit={openEdit}
                       onRequestMove={requestMove}

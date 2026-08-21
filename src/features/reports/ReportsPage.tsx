@@ -32,6 +32,7 @@ import {
   type ReportRow,
 } from "@/queries/reports";
 import { useSettings } from "@/queries/settings";
+import { useDayOffs, useDayOffsAll } from "@/queries/dayOffs";
 import { fromISODate, toISODate } from "@/lib/dates";
 import { plannedMinutes, workDaysInRange } from "@/lib/workhours";
 import { formatHours, minutesToHours } from "@/lib/time";
@@ -145,6 +146,20 @@ export function ReportsPage() {
   const isLoading = scope === "all" ? allLoading : thisLoading;
   const { data: settings } = useSettings(userId);
   const currency = settings?.currency ?? "UAH";
+
+  // Персональні вихідні для розрахунку норми: у режимі «цей простір» — лише
+  // свого простору, у «усі мої простори» — по всіх (де є членство).
+  const { data: thisDayOffs } = useDayOffs(workspaceId, userId, from, to);
+  const { data: allDayOffs } = useDayOffsAll(
+    scope === "all" ? userId : null,
+    from,
+    to,
+  );
+  const dayOffISOs = scope === "all" ? allDayOffs : thisDayOffs;
+  const offSet = useMemo(
+    () => new Set((dayOffISOs ?? []).map((d) => d.date)),
+    [dayOffISOs],
+  );
 
   // Діалог опцій Excel-експорту (перед вивантаженням питаємо про розбивку за описом).
   const [excelDialogOpen, setExcelDialogOpen] = useState(false);
@@ -311,8 +326,18 @@ export function ReportsPage() {
     activeProject === "all" && (scope === "all" || effectiveMember === userId);
   const workDays = settings?.workDays ?? [];
   const workDayMinutes = settings?.workDayMinutes ?? 0;
-  const plannedMin = plannedMinutes(from, to, workDays, workDayMinutes);
-  const workDayCount = workDaysInRange(from, to, workDays);
+  const plannedMin = plannedMinutes(from, to, workDays, workDayMinutes, offSet);
+  const workDayCount = workDaysInRange(from, to, workDays, offSet);
+  // Скільки з позначених вихідних потрапило саме на робочий день у діапазоні
+  // (лише вони й вплинули на норму) — для підпису під кількістю днів.
+  const offCountInWorkDays = [...offSet].filter((iso) => {
+    const dt = fromISODate(iso);
+    return (
+      iso >= from &&
+      iso <= to &&
+      workDays.includes(dt.getDay())
+    );
+  }).length;
   const planDiffMin = totalMinutes - plannedMin;
 
   const totalAmount = byProject.reduce(
@@ -810,6 +835,13 @@ export function ReportsPage() {
                     <div className="text-xs text-muted-foreground">
                       {t("reports.planWorkDays", { count: workDayCount })}
                     </div>
+                    {offCountInWorkDays > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {t("reports.planDaysOff", {
+                          count: offCountInWorkDays,
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">

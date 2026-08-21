@@ -40,6 +40,8 @@ interface DayColumnProps {
   queryKey: QueryKey;
   /** Перегляд чужого таймшита — сітка лише для читання (без створення/зміни). */
   readOnly?: boolean;
+  /** Персональний вихідний (свято/відпустка) — лише приглушений фон. */
+  isDayOff?: boolean;
   onCreate: (draft: EntryDraft) => void;
   onEdit: (entry: TimeEntry) => void;
   onRequestMove: (
@@ -84,6 +86,7 @@ export function DayColumn({
   userId,
   queryKey,
   readOnly = false,
+  isDayOff = false,
   onCreate,
   onEdit,
   onRequestMove,
@@ -350,6 +353,7 @@ export function DayColumn({
       className={cn(
         "relative w-full select-none",
         readOnly ? "cursor-default" : "cursor-crosshair",
+        isDayOff && "bg-muted/40",
       )}
       style={{ height }}
       onPointerDown={readOnly ? undefined : handlePointerDown}
