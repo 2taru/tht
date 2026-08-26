@@ -1,4 +1,11 @@
-import { addDays, format, parseISO, startOfWeek } from "date-fns";
+import {
+  addDays,
+  endOfMonth,
+  format,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { uk } from "date-fns/locale";
 
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -34,4 +41,10 @@ export function formatDateTime(iso: string): string {
 export function weekDaysISO(iso: string, weekStart: WeekStart): string[] {
   const base = startOfWeek(parseISO(iso), { weekStartsOn: weekStart });
   return Array.from({ length: 7 }, (_, i) => toISODate(addDays(base, i)));
+}
+
+/** Межі місяця, що містить дату — { from, to } як локальні ISO (включно). */
+export function monthRangeISO(iso: string): { from: string; to: string } {
+  const d = parseISO(iso);
+  return { from: toISODate(startOfMonth(d)), to: toISODate(endOfMonth(d)) };
 }

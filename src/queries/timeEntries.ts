@@ -111,6 +111,15 @@ interface MutationCtx {
   queryKey: QueryKey;
 }
 
+/**
+ * Префікс усіх діапазонних запитів записів користувача. Інвалідуємо за ним, а
+ * не за конкретним `queryKey`, щоб після мутації оновилися ВСІ активні діапазони
+ * (видимий тиждень + окремий запит місяця для норми в топбарі тощо).
+ */
+function entriesPrefix(ctx: MutationCtx): QueryKey {
+  return ["time-entries", ctx.workspaceId, ctx.userId];
+}
+
 export function useCreateEntry(ctx: MutationCtx) {
   const qc = useQueryClient();
   return useMutation({
@@ -133,7 +142,7 @@ export function useCreateEntry(ctx: MutationCtx) {
       return toDomain(data as EntryRow);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ctx.queryKey });
+      qc.invalidateQueries({ queryKey: entriesPrefix(ctx) });
     },
   });
 }
@@ -178,7 +187,7 @@ export function useUpdateEntry(ctx: MutationCtx) {
       if (context?.prev) qc.setQueryData(ctx.queryKey, context.prev);
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ctx.queryKey });
+      qc.invalidateQueries({ queryKey: entriesPrefix(ctx) });
     },
   });
 }
@@ -216,7 +225,7 @@ export function useBulkCreateEntries(ctx: MutationCtx) {
       return { created, skipped };
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ctx.queryKey });
+      qc.invalidateQueries({ queryKey: entriesPrefix(ctx) });
     },
   });
 }
@@ -246,7 +255,7 @@ export function useDeleteEntry(ctx: MutationCtx) {
       if (context?.prev) qc.setQueryData(ctx.queryKey, context.prev);
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ctx.queryKey });
+      qc.invalidateQueries({ queryKey: entriesPrefix(ctx) });
     },
   });
 }

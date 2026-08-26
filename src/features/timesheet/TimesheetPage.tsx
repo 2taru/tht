@@ -38,10 +38,12 @@ import { findFreeSlot } from "./freeSlot";
 import {
   addDaysISO,
   fromISODate,
+  monthRangeISO,
   todayISO,
   weekDaysISO,
   type WeekStart,
 } from "@/lib/dates";
+import { plannedMinutes } from "@/lib/workhours";
 import { formatHours, intervalsOverlap } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,6 +60,9 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -91,6 +96,7 @@ const DEFAULTS = {
 };
 
 type View = "week" | "day";
+type NormMode = "off" | "today" | "month";
 
 export function TimesheetPage() {
   const { t } = useTranslation();
@@ -138,6 +144,17 @@ export function TimesheetPage() {
     setHideNonWork(next);
     localStorage.setItem("tht.hideNonWorkDays", next ? "1" : "0");
   }
+  // Режим показу різниці місячної норми в топбарі (лише для власного таймшита):
+  // off — прихована, today — норма до сьогодні (дефолт), month — за весь місяць.
+  const [normMode, setNormModeState] = useState<NormMode>(() => {
+    const v = localStorage.getItem("tht.timesheetNormMode");
+    return v === "off" || v === "today" || v === "month" ? v : "today";
+  });
+  function setNormMode(next: NormMode) {
+    setNormModeState(next);
+    localStorage.setItem("tht.timesheetNormMode", next);
+  }
+
   const visibleDays = useMemo(() => {
     if (view !== "week" || !hideNonWork) return days;
     const workDays = settings?.workDays ?? [1, 2, 3, 4, 5];
@@ -174,6 +191,48 @@ export function TimesheetPage() {
       setDayOff.mutate({ workspaceId, userId, date: d, note: null });
     }
   }
+
+  // Різниця місячної норми (як у Звітах, але за поточний місяць) — лише для
+  // ВЛАСНИХ годин: норма береться з налаштувань користувача, тож для чужого
+  // таймшита сенсу не має. Запити місяця вимикаються, коли блок прихований.
+  const monthShow = normMode !== "off" && !readOnly;
+  const { from: monthFrom, to: monthTo } = useMemo(
+    () => monthRangeISO(date),
+    [date],
+  );
+  const normUserId = monthShow ? userId : null;
+  const { data: monthEntries } = useEntriesRange(
+    workspaceId,
+    normUserId,
+    monthFrom,
+    monthTo,
+  );
+  const { data: monthDayOffs } = useDayOffs(
+    workspaceId,
+    normUserId,
+    monthFrom,
+    monthTo,
+  );
+  const monthNorm = useMemo(() => {
+    if (!monthShow || !settings) return null;
+    // «До сьогодні»: рахуємо норму (і відпрацьоване) лише по день сьогодні, поки
+    // сьогодні всередині цього місяця; для минулих місяців — до кінця місяця.
+    const today = todayISO();
+    const normTo =
+      normMode === "today" && today < monthTo ? today : monthTo;
+    const workedMin = (monthEntries ?? [])
+      .filter((e) => e.entryDate <= normTo)
+      .reduce((s, e) => s + (e.endMinute - e.startMinute), 0);
+    const offSet = new Set((monthDayOffs ?? []).map((d) => d.date));
+    const plannedMin = plannedMinutes(
+      monthFrom,
+      normTo,
+      settings.workDays ?? [],
+      settings.workDayMinutes ?? 0,
+      offSet,
+    );
+    return { workedMin, plannedMin, normTo, diff: workedMin - plannedMin };
+  }, [monthShow, normMode, settings, monthEntries, monthDayOffs, monthFrom, monthTo]);
 
   const queryKey = entriesKey(workspaceId, effectiveUserId, fromISO, toISO);
   const mutationCtx = { workspaceId, userId, queryKey };
@@ -485,6 +544,31 @@ export function TimesheetPage() {
               {formatHours(totalMinutes)} {t("common.hours")}
             </span>
           </span>
+          {monthNorm && (
+            <span
+              className="text-sm text-muted-foreground"
+              title={t("timesheet.monthNormHint", {
+                worked: formatHours(monthNorm.workedMin),
+                norm: formatHours(monthNorm.plannedMin),
+                month: format(fromISODate(date), "LLLL", { locale: uk }),
+                upto: format(fromISODate(monthNorm.normTo), "d MMM", {
+                  locale: uk,
+                }),
+              })}
+            >
+              {t("timesheet.monthNorm")}:{" "}
+              <span
+                className={`font-semibold ${
+                  monthNorm.diff >= 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-destructive"
+                }`}
+              >
+                {monthNorm.diff >= 0 ? "+" : "−"}
+                {formatHours(Math.abs(monthNorm.diff))} {t("common.hours")}
+              </span>
+            </span>
+          )}
           {canManage && (members?.length ?? 0) > 1 && (
             <Select
               value={effectiveUserId ?? undefined}
@@ -540,7 +624,28 @@ export function TimesheetPage() {
                   {t("timesheet.breakdown")}
                 </DropdownMenuCheckboxItem>
               )}
-              {(view === "week" || perProject.length > 0) && (
+              {!readOnly && (
+                <>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                    {t("timesheet.normMode")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={normMode}
+                    onValueChange={(v) => setNormMode(v as NormMode)}
+                  >
+                    <DropdownMenuRadioItem value="off">
+                      {t("timesheet.normOff")}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="today">
+                      {t("timesheet.normToday")}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="month">
+                      {t("timesheet.normMonth")}
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </>
+              )}
+              {(view === "week" || perProject.length > 0 || !readOnly) && (
                 <DropdownMenuSeparator />
               )}
               <div className="flex items-center justify-between px-2 py-1.5">
