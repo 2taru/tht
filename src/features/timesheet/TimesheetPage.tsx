@@ -748,8 +748,8 @@ export function TimesheetPage() {
           className="min-h-0 flex-1 overflow-auto rounded-lg border"
         >
           <div className="flex">
-            <div className="sticky left-0 z-10 bg-background">
-              <div className="h-10" />
+            <div className="sticky left-0 z-30 bg-background">
+              <div className="sticky top-0 z-30 h-10 bg-background" />
               <TimeAxis
                 dayStart={gridStart}
                 dayEnd={gridEnd}
@@ -783,12 +783,12 @@ export function TimesheetPage() {
                     className="flex min-w-28 flex-1 flex-col border-l"
                   >
                     <div
-                      className={`relative flex h-10 flex-col items-center justify-center text-xs ${
+                      className={`sticky top-0 z-20 flex h-10 flex-col items-center justify-center text-xs ${
                         isDayOff
-                          ? "bg-muted/60 text-muted-foreground"
+                          ? "bg-muted text-muted-foreground"
                           : isToday
                             ? "bg-accent font-semibold"
-                            : ""
+                            : "bg-background"
                       }`}
                     >
                       <span className="capitalize text-muted-foreground">
