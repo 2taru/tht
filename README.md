@@ -1,4 +1,19 @@
+<div align="center">
+
+<img src="public/favicon.svg" width="72" alt="tht logo" />
+
 # tht — Track Hours & Tasks
+
+**Трекер часу + менеджер задач для себе й для команди**
+
+![version](https://img.shields.io/badge/version-1.9.2-6366f1?style=flat-square)
+![React](https://img.shields.io/badge/React-20232a?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+
+</div>
 
 Веб-трекер часу + менеджер задач під особистий воркфлоу, з прицілом вирости в
 командний інструмент. Облік часу на інтервальній сітці (тиждень/день), Kanban-дошка
@@ -49,7 +64,7 @@ pnpm db:start        # надрукує локальні URL та anon key
 pnpm db:reset        # накотить міграції + seed
 
 # 3. Змінні оточення
-cp .env.example .env.local
+cp .env.local.example .env.local
 # впиши VITE_SUPABASE_URL та VITE_SUPABASE_ANON_KEY зі стартового виводу
 
 # 4. Запуск
